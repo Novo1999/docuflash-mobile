@@ -1,3 +1,4 @@
+import { configureGoogleSignin } from '@/lib/googleSignin'
 import { AuthProvider, useAuth } from '@/state/AuthProvider'
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider'
 import {
@@ -21,6 +22,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 SplashScreen.preventAutoHideAsync()
+configureGoogleSignin()
 
 function RootNavigator() {
   const { colors, mode } = useTheme()

@@ -3,11 +3,14 @@ import { AppText, Button, Field, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { getOAuthUrl } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
+import { authSchema, type AuthFormValues } from '@/lib/validation/auth'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { OAuthProvider } from '@/types/auth'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { Alert, Pressable, View } from 'react-native'
 
 type Mode = 'signin' | 'signup'
@@ -16,39 +19,46 @@ export default function AuthScreen() {
   const { colors } = useTheme()
   const { login, register } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
 
-  const onSubmit = async () => {
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    clearErrors,
+    formState: { errors, isSubmitting },
+  } = useForm<AuthFormValues>({
+    resolver: zodResolver(authSchema),
+    defaultValues: { mode: 'signin', email: '', password: '', displayName: '' },
+  })
+
+  const switchMode = (next: Mode) => {
+    setMode(next)
+    setValue('mode', next)
     setError(null)
-    if (!email.trim() || !password) {
-      setError('Email and password are required.')
-      return
-    }
-    setSubmitting(true)
+    clearErrors()
+  }
+
+  const onSubmit = handleSubmit(async (values) => {
+    setError(null)
     try {
-      if (mode === 'signin') {
-        await login({ email: email.trim(), password })
+      if (values.mode === 'signin') {
+        await login({ email: values.email, password: values.password })
       } else {
         const { needsEmailConfirmation } = await register({
-          email: email.trim(),
-          password,
-          displayName: displayName.trim() || undefined,
+          email: values.email,
+          password: values.password,
+          displayName: values.displayName || undefined,
         })
         if (needsEmailConfirmation) {
           Alert.alert('Check your inbox', 'Confirm your email to finish creating your account, then sign in.')
-          setMode('signin')
+          switchMode('signin')
         }
       }
     } catch (e) {
       setError(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
-    } finally {
-      setSubmitting(false)
     }
-  }
+  })
 
   const onOAuth = async (provider: OAuthProvider) => {
     try {
@@ -90,10 +100,7 @@ export default function AuthScreen() {
       <View style={{ marginBottom: 22 }}>
         <Segmented
           value={mode}
-          onChange={(v) => {
-            setMode(v)
-            setError(null)
-          }}
+          onChange={switchMode}
           options={[
             { value: 'signin', label: 'Sign in' },
             { value: 'signup', label: 'Create account' },
@@ -103,17 +110,54 @@ export default function AuthScreen() {
 
       <View style={{ gap: 16 }}>
         {mode === 'signup' ? (
-          <Field label="Name" icon="settings" placeholder="Ava Mercer" value={displayName} onChangeText={setDisplayName} />
+          <Controller
+            control={control}
+            name="displayName"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Field
+                label="Name"
+                icon="settings"
+                placeholder="Ava Mercer"
+                value={value ?? ''}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.displayName?.message}
+              />
+            )}
+          />
         ) : null}
-        <Field
-          label="Email"
-          icon="mail"
-          placeholder="ava@studio.co"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Field
+              label="Email"
+              icon="mail"
+              placeholder="ava@studio.co"
+              keyboardType="email-address"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={errors.email?.message}
+            />
+          )}
         />
-        <Field label="Password" icon="lock" secure placeholder="Your password" value={password} onChangeText={setPassword} />
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Field
+              label="Password"
+              icon="lock"
+              secure
+              placeholder="Your password"
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              error={errors.password?.message}
+            />
+          )}
+        />
       </View>
 
       {mode === 'signin' ? (
@@ -133,7 +177,7 @@ export default function AuthScreen() {
       <Button
         title={mode === 'signin' ? 'Sign in' : 'Create account'}
         onPress={onSubmit}
-        loading={submitting}
+        loading={isSubmitting}
         style={{ marginTop: 18 }}
       />
 

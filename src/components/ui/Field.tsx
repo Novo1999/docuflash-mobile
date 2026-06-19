@@ -8,9 +8,10 @@ type FieldProps = TextInputProps & {
   label?: string
   icon?: IconName
   secure?: boolean
+  error?: string
 }
 
-export function Field({ label, icon, secure = false, style, ...rest }: FieldProps) {
+export function Field({ label, icon, secure = false, error, style, ...rest }: FieldProps) {
   const { colors, radii, fonts } = useTheme()
   const [hidden, setHidden] = useState(secure)
 
@@ -28,7 +29,7 @@ export function Field({ label, icon, secure = false, style, ...rest }: FieldProp
           gap: 10,
           backgroundColor: colors.inputBg,
           borderWidth: 1,
-          borderColor: colors.borderStrong,
+          borderColor: error ? colors.danger : colors.borderStrong,
           borderRadius: radii.md,
           paddingHorizontal: 14,
           paddingVertical: 13,
@@ -53,6 +54,11 @@ export function Field({ label, icon, secure = false, style, ...rest }: FieldProp
           </Pressable>
         ) : null}
       </View>
+      {error ? (
+        <AppText size={11.5} color={colors.danger} style={{ marginTop: 6 }}>
+          {error}
+        </AppText>
+      ) : null}
     </View>
   )
 }

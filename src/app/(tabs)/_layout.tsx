@@ -3,6 +3,7 @@ import { AppText } from '@/components/ui'
 import { useTheme } from '@/theme/ThemeProvider'
 import { Tabs } from 'expo-router'
 import { View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 function TabIcon({ name, label, focused }: { name: IconName; label: string; focused: boolean }) {
   const { colors } = useTheme()
@@ -19,6 +20,7 @@ function TabIcon({ name, label, focused }: { name: IconName; label: string; focu
 
 export default function TabsLayout() {
   const { colors } = useTheme()
+  const insets = useSafeAreaInsets()
   return (
     <Tabs
       screenOptions={{
@@ -28,23 +30,15 @@ export default function TabsLayout() {
           backgroundColor: colors.screen,
           borderTopColor: colors.border,
           borderTopWidth: 1,
-          height: 84,
+          height: 64 + insets.bottom,
           paddingTop: 4,
+          paddingBottom: insets.bottom,
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="upload" label="Upload" focused={focused} /> }}
-      />
-      <Tabs.Screen
-        name="uploads"
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="folder" label="My uploads" focused={focused} /> }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" label="Profile" focused={focused} /> }}
-      />
+      <Tabs.Screen name="index" options={{ tabBarIcon: ({ focused }) => <TabIcon name="upload" label="Upload" focused={focused} /> }} />
+      <Tabs.Screen name="uploads" options={{ tabBarIcon: ({ focused }) => <TabIcon name="folder" label="My uploads" focused={focused} /> }} />
+      <Tabs.Screen name="profile" options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" label="Profile" focused={focused} /> }} />
     </Tabs>
   )
 }
