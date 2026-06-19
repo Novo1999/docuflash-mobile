@@ -1,7 +1,12 @@
 import { Icon } from '@/components/Icon'
 import { AppText, Button, Card, Field, FileTypeBadge, IconButton, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
-import { EXPIRY_PRESETS, MAX_UPLOAD_FILES, MAX_UPLOAD_FILE_SIZE_BYTES } from '@/constants/upload'
+import {
+  ACCEPTED_UPLOAD_MIME_TYPES,
+  EXPIRY_PRESETS,
+  MAX_UPLOAD_FILES,
+  MAX_UPLOAD_FILE_SIZE_BYTES,
+} from '@/constants/upload'
 import { useUploadSubmit } from '@/hooks/useUploadSubmit'
 import { computeExpireAt, formatFileSize, resolveFileType, type PickedFile } from '@/lib/upload'
 import { useAuth } from '@/state/AuthProvider'
@@ -28,7 +33,11 @@ export default function UploadScreen() {
 
   const pickFiles = async () => {
     setError(null)
-    const result = await DocumentPicker.getDocumentAsync({ multiple: true, copyToCacheDirectory: true })
+    const result = await DocumentPicker.getDocumentAsync({
+      multiple: true,
+      copyToCacheDirectory: true,
+      type: ACCEPTED_UPLOAD_MIME_TYPES,
+    })
     if (result.canceled) return
     const picked: PickedFile[] = result.assets
       .map((a) => ({ uri: a.uri, name: a.name, size: a.size ?? 0, mimeType: a.mimeType }))
