@@ -8,8 +8,6 @@
       "node": "22.13.0",
       "env": {
         "EAS_USE_CACHE": "1",
-        "EXPO_PUBLIC_BASE_URL": "https://docuflash-api.vercel.app",
-        "EXPO_PUBLIC_SHARE_BASE_URL": "https://docuflash-frontend.vercel.app",
         "EAS_GRADLE_CACHE": "1"
       }
     },
