@@ -1,56 +1,109 @@
-# Welcome to your Expo app 👋
+# Docuflash Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Share files privately, from your phone. Docuflash Mobile is the [Expo](https://expo.dev) React Native client for Docuflash — a service for creating **encrypted, self-expiring share links** for documents. Upload a file, choose who can open it and for how long, and hand out a link that vanishes on your schedule.
 
-## Get started
+This app is the native companion to the Docuflash web app and talks to the same backend ([`docuflash-api`](https://docuflash-api.vercel.app)) and [UploadThing](https://uploadthing.com) storage.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Upload & share** — pick up to 5 files (PDF, DOCX, XLSX, ZIP, TXT; 16 MB each) and generate a share link.
+- **Password protection** — mark a share as `Protected` (requires a password to open) or `Public`.
+- **Auto-expiry** — links self-delete after 1 hour, 24 hours, 7 days, or 30 days.
+- **My uploads** — browse, search, copy, open, and delete your files and folders, with download counts and expiry badges.
+- **Shared link viewer** — open a `share/[shareToken]` link to unlock (if protected), preview, and download a file.
+- **Authentication** — email/password sign-up & login plus native Google Sign-In, with sessions stored in secure storage.
+- **Theming** — light / dark / system appearance, custom fonts (DM Sans + Source Serif 4), and a token-based design system.
 
-2. Start the app
+## Tech stack
 
-   ```bash
-   npx expo start
-   ```
+- **Expo SDK 56** + **React Native 0.85** + **React 19** (React Compiler enabled)
+- **Expo Router** for file-based, typed navigation
+- **TypeScript**
+- **react-hook-form** + **Zod** for forms and validation
+- **UploadThing** (`@uploadthing/expo`) for file uploads
+- **expo-secure-store** for session persistence
+- **@react-native-google-signin/google-signin** for native Google auth
+- **EAS Build** for development, preview, and production builds
 
-In the output, you'll find options to open the app in a
+> ⚠️ Expo SDK 56 introduced breaking changes. Read the versioned docs at <https://docs.expo.dev/versions/v56.0.0/> before contributing.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+src/
+├── app/                      # Expo Router routes (file-based)
+│   ├── _layout.tsx           # Root stack, providers, auth redirect, font loading
+│   ├── index.tsx             # Entry redirect
+│   ├── auth.tsx              # Sign in / sign up
+│   ├── success.tsx           # Post-upload share-link confirmation (modal)
+│   ├── share/[shareToken].tsx# Public shared-file viewer (unlock / preview / download)
+│   └── (tabs)/               # Authenticated tab navigator
+│       ├── index.tsx         # Upload screen
+│       ├── uploads.tsx       # My uploads (files & folders)
+│       └── profile.tsx       # Account, storage, settings, appearance
+├── components/               # Icon + reusable UI primitives (Button, Card, Field, …)
+├── constants/                # API base URL, auth, upload limits & MIME types
+├── hooks/                    # useUploadSubmit, useColorScheme
+├── lib/                      # API client, auth/files/folder endpoints, upload, session, validation
+├── state/                    # AuthProvider (auth context)
+├── theme/                    # ThemeProvider + design tokens
+└── types/                    # Shared TypeScript types (auth, file, folder)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting started
 
-### Other setup steps
+### Prerequisites
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- Node.js (see `eas.json` — builds use 22.13.0)
+- A running Docuflash backend, or use the deployed default API
 
-## Learn more
+### 1. Install dependencies
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npm install
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 2. Configure environment
 
-## Join the community
+Copy `.env.example` to `.env` and fill in the values:
 
-Join our community of developers creating universal apps.
+```bash
+cp .env.example .env
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+| Variable | Description |
+| --- | --- |
+| `EXPO_PUBLIC_BASE_URL` | Backend REST + UploadThing host. Defaults to the deployed API. For a local backend on a device/simulator, use your machine's LAN IP (not `localhost`). |
+| `EXPO_PUBLIC_SHARE_BASE_URL` | Where share links resolve (the web frontend host). Optional. |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google "Web client" OAuth ID (needed for an idToken). Requires a custom dev build. |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google "iOS client" OAuth ID (iOS only). The reversed form also goes in `app.json`'s `iosUrlScheme`. |
+
+### 3. Start the app
+
+```bash
+npm start          # expo start
+npm run android    # build & run on Android
+npm run ios        # build & run on iOS
+npm run web        # run in the browser
+```
+
+> Native Google Sign-In requires a [custom development build](https://docs.expo.dev/develop/development-builds/introduction/) — it does not work in Expo Go.
+
+## Scripts
+
+| Script | Description |
+| --- | --- |
+| `npm start` | Start the Expo dev server |
+| `npm run android` / `ios` / `web` | Run on a target platform |
+| `npm run lint` | Lint with `expo lint` |
+| `npm run build:development:*` | EAS development build (Android / iOS) |
+| `npm run build:preview` | EAS preview build (all platforms) |
+| `npm run build` | EAS production build (all platforms) |
+
+## Building
+
+Builds are configured in `eas.json` with `development`, `preview`, and `production` profiles. Development and preview build internal-distribution APKs; production auto-increments the version. See the [EAS Build docs](https://docs.expo.dev/build/introduction/).
+
+## License
+
+See [LICENSE](LICENSE).
