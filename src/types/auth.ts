@@ -21,6 +21,7 @@ export type AuthSession = {
 
 export type LoginPayload = { email: string; password: string }
 export type RegisterPayload = { email: string; password: string; displayName?: string }
+export type GoogleNativePayload = { idToken: string }
 
 export type AuthResult = { user: AuthUser; session: AuthSession }
 export type RegisterResult = {

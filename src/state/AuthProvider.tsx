@@ -1,10 +1,12 @@
 import {
   getCurrentUser,
   loginUser,
+  loginWithGoogleNative,
   logoutUser,
   registerUser,
   updateProfile as updateProfileApi,
 } from '@/lib/api/auth'
+import { signInWithGoogle } from '@/lib/googleSignin'
 import { loadSession, persistSession } from '@/lib/session'
 import type { AuthStatus, AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from '@/types/auth'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
@@ -13,6 +15,7 @@ type AuthContextValue = {
   user: AuthUser | null
   status: AuthStatus
   login: (payload: LoginPayload) => Promise<void>
+  loginWithGoogle: () => Promise<{ cancelled: boolean }>
   register: (payload: RegisterPayload) => Promise<{ needsEmailConfirmation: boolean }>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -55,6 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('authenticated')
   }
 
+  const loginWithGoogle: AuthContextValue['loginWithGoogle'] = async () => {
+    const result = await signInWithGoogle()
+    if (result.type === 'cancelled' || !result.data?.idToken) {
+      return { cancelled: true }
+    }
+    const auth = await loginWithGoogleNative({ idToken: result.data.idToken })
+    await persistSession(auth.session)
+    setUser(auth.user)
+    setStatus('authenticated')
+    return { cancelled: false }
+  }
+
   const register: AuthContextValue['register'] = async (payload) => {
     const result = await registerUser(payload)
     if (result.session) {
@@ -87,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, login, register, logout, refreshUser, updateProfile }),
+    () => ({ user, status, login, loginWithGoogle, register, logout, refreshUser, updateProfile }),
     [user, status],
   )
 

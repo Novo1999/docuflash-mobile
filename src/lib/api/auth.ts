@@ -1,6 +1,7 @@
 import type {
   AuthResult,
   AuthUser,
+  GoogleNativePayload,
   LoginPayload,
   OAuthProvider,
   RefreshResult,
@@ -18,6 +19,11 @@ export async function registerUser(payload: RegisterPayload): Promise<RegisterRe
 export async function loginUser(payload: LoginPayload): Promise<AuthResult> {
   const response = await apiClient<AuthResult>('/api/auth/login', { method: 'POST', body: payload })
   return requireApiData(response, 'Invalid email or password')
+}
+
+export async function loginWithGoogleNative(payload: GoogleNativePayload): Promise<AuthResult> {
+  const response = await apiClient<AuthResult>('/api/auth/oauth/google/native', { method: 'POST', body: payload })
+  return requireApiData(response, 'Google sign-in failed')
 }
 
 export async function refreshAuthSession(refreshToken: string): Promise<RefreshResult> {

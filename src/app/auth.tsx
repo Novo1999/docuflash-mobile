@@ -11,13 +11,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Alert, Pressable, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native'
 
 type Mode = 'signin' | 'signup'
 
 export default function AuthScreen() {
   const { colors } = useTheme()
-  const { login, register } = useAuth()
+  const { login, loginWithGoogle, register } = useAuth()
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [mode, setMode] = useState<Mode>('signin')
   const [error, setError] = useState<string | null>(null)
 
@@ -59,6 +60,25 @@ export default function AuthScreen() {
       setError(e instanceof ApiError ? e.message : 'Something went wrong. Please try again.')
     }
   })
+
+  const onGoogle = async () => {
+    setError(null)
+    setGoogleLoading(true)
+    try {
+      await loginWithGoogle()
+    } catch (e) {
+      console.warn('[google-signin] failed:', e)
+      const detail =
+        e instanceof ApiError
+          ? e.message
+          : e instanceof Error
+            ? `${(e as { code?: string }).code ? `[${(e as { code?: string }).code}] ` : ''}${e.message}`
+            : 'Google sign-in failed. Please try again.'
+      setError(detail)
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
 
   const onOAuth = async (provider: OAuthProvider) => {
     try {
@@ -190,7 +210,7 @@ export default function AuthScreen() {
       </View>
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
-        <OAuthButton label="Google" onPress={() => onOAuth('google')} />
+        <OAuthButton label="Google" onPress={onGoogle} loading={googleLoading} />
         <OAuthButton label="GitHub" icon onPress={() => onOAuth('github')} />
       </View>
 
@@ -201,11 +221,22 @@ export default function AuthScreen() {
   )
 }
 
-function OAuthButton({ label, icon, onPress }: { label: string; icon?: boolean; onPress: () => void }) {
+function OAuthButton({
+  label,
+  icon,
+  onPress,
+  loading,
+}: {
+  label: string
+  icon?: boolean
+  onPress: () => void
+  loading?: boolean
+}) {
   const { colors, radii } = useTheme()
   return (
     <Pressable
       onPress={onPress}
+      disabled={loading}
       style={({ pressed }) => ({
         flex: 1,
         flexDirection: 'row',
@@ -217,10 +248,12 @@ function OAuthButton({ label, icon, onPress }: { label: string; icon?: boolean; 
         backgroundColor: colors.surface,
         borderRadius: radii.md,
         paddingVertical: 13,
-        opacity: pressed ? 0.85 : 1,
+        opacity: loading ? 0.6 : pressed ? 0.85 : 1,
       })}
     >
-      {icon ? (
+      {loading ? (
+        <ActivityIndicator size="small" color={colors.text} />
+      ) : icon ? (
         <Icon name="github" size={17} color={colors.text} />
       ) : (
         <View
