@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "docuflash-mobile",
+    "name": "Docuflash",
     "slug": "docuflash-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,21 +8,22 @@
     "scheme": "docuflashmobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "com.novodip.docuflashmobile",
+      "buildNumber": "1",
+      "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon.png"
       },
+      "versionCode": 1,
       "predictiveBackGestureEnabled": false,
       "package": "com.novodip.docuflashmobile"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon-192.png"
     },
     "plugins": [
       "expo-router",
