@@ -9,7 +9,7 @@ import { FileAccessType } from '@/types/file'
 import type { MyFolderRecord } from '@/types/folder'
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, Linking, Pressable, RefreshControl, ScrollView, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -24,9 +24,9 @@ export default function UploadsScreen() {
   const [pendingDelete, setPendingDelete] = useState<{ type: 'file' | 'folder'; token: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (search?: string) => {
     try {
-      const [f, d] = await Promise.all([getMyFiles(), getMyFolders()])
+      const [f, d] = await Promise.all([getMyFiles(search), getMyFolders(search)])
       setFiles(f)
       setFolders(d)
     } catch {
@@ -37,16 +37,26 @@ export default function UploadsScreen() {
     }
   }, [])
 
+  // Debounced server-side search; also handles the initial load (empty query).
+  useEffect(() => {
+    const timer = setTimeout(() => load(query), 300)
+    return () => clearTimeout(timer)
+  }, [query, load])
+
+  // Refresh when returning to the screen (e.g. after an upload/delete elsewhere).
+  // The first focus is skipped — the debounced effect above already loads on mount.
+  const isFirstFocus = useRef(true)
   useFocusEffect(
     useCallback(() => {
-      load()
-    }, [load]),
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false
+        return
+      }
+      load(query)
+    }, [load, query]),
   )
 
   const standalone = useMemo(() => files.filter((f) => (f.folders?.length ?? 0) === 0), [files])
-  const lower = query.trim().toLowerCase()
-  const filteredFolders = folders.filter((f) => f.folderName.toLowerCase().includes(lower))
-  const filteredFiles = standalone.filter((f) => f.fileName.toLowerCase().includes(lower))
 
   const copy = async (text: string) => {
     await Clipboard.setStringAsync(text)
@@ -84,7 +94,7 @@ export default function UploadsScreen() {
             refreshing={refreshing}
             onRefresh={() => {
               setRefreshing(true)
-              load()
+              load(query)
             }}
             tintColor={colors.accent}
           />
@@ -139,11 +149,11 @@ export default function UploadsScreen() {
 
         {loading ? (
           <ActivityIndicator color={colors.accent} style={{ marginTop: 40 }} />
-        ) : filteredFolders.length === 0 && filteredFiles.length === 0 ? (
+        ) : folders.length === 0 && standalone.length === 0 ? (
           <EmptyState />
         ) : (
           <>
-            {filteredFolders.map((folder) => (
+            {folders.map((folder) => (
               <FolderCard
                 key={folder.id}
                 folder={folder}
@@ -151,7 +161,7 @@ export default function UploadsScreen() {
                 onDelete={() => confirmDeleteFolder(folder.shareToken)}
               />
             ))}
-            {filteredFiles.map((file) => (
+            {standalone.map((file) => (
               <FileCard
                 key={file.id}
                 file={file}

@@ -9,8 +9,9 @@ export async function createFolder(payload: CreateFolderPayload): Promise<Folder
   return requireApiData(response, 'Failed to create folder')
 }
 
-export async function getMyFolders(): Promise<MyFolderRecord[]> {
-  const response = await apiClient<MyFolderRecord[]>('/api/folders/mine')
+export async function getMyFolders(search?: string): Promise<MyFolderRecord[]> {
+  const query = search?.trim() ? `?search=${encodeURIComponent(search.trim())}` : ''
+  const response = await apiClient<MyFolderRecord[]>(`/api/folders/mine${query}`)
   return requireApiData(response, 'Failed to load your folders')
 }
 
