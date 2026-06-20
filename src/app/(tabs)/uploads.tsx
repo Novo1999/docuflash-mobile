@@ -1,5 +1,5 @@
 import { Icon } from '@/components/Icon'
-import { AppText, Card, FileTypeBadge, IconButton, Pill } from '@/components/ui'
+import { AppText, Card, ConfirmModal, FileTypeBadge, IconButton, Pill } from '@/components/ui'
 import { deleteFileByShareToken, getMyFiles } from '@/lib/api/files'
 import { deleteFolderByShareToken, getFolderByShareToken, getMyFolders } from '@/lib/api/folder'
 import { formatExpiry, formatFileSize, getFolderShareLink, getShareLink, shortExpiryBadge } from '@/lib/upload'
@@ -21,6 +21,8 @@ export default function UploadsScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [query, setQuery] = useState('')
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'file' | 'folder'; token: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -51,31 +53,26 @@ export default function UploadsScreen() {
     Alert.alert('Copied', 'Share link copied to clipboard.')
   }
 
-  const confirmDeleteFile = (token: string) =>
-    Alert.alert('Delete file', 'This permanently removes the file and its link.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteFileByShareToken(token)
-          load()
-        },
-      },
-    ])
+  const confirmDeleteFile = (token: string) => setPendingDelete({ type: 'file', token })
+  const confirmDeleteFolder = (token: string) => setPendingDelete({ type: 'folder', token })
 
-  const confirmDeleteFolder = (token: string) =>
-    Alert.alert('Delete folder', 'This permanently removes the folder and its files.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          await deleteFolderByShareToken(token)
-          load()
-        },
-      },
-    ])
+  const runDelete = async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    try {
+      if (pendingDelete.type === 'file') {
+        await deleteFileByShareToken(pendingDelete.token)
+      } else {
+        await deleteFolderByShareToken(pendingDelete.token)
+      }
+      setPendingDelete(null)
+      load()
+    } catch {
+      Alert.alert('Delete failed', 'Something went wrong. Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.screen }} edges={['top']}>
@@ -166,6 +163,22 @@ export default function UploadsScreen() {
           </>
         )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={pendingDelete !== null}
+        icon="trash"
+        tone="danger"
+        title={pendingDelete?.type === 'folder' ? 'Delete folder' : 'Delete file'}
+        message={
+          pendingDelete?.type === 'folder'
+            ? 'This permanently removes the folder and its files.'
+            : 'This permanently removes the file and its link.'
+        }
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={runDelete}
+        onClose={() => setPendingDelete(null)}
+      />
     </SafeAreaView>
   )
 }

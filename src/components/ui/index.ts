@@ -1,6 +1,7 @@
 export { AppText } from './AppText'
 export { Button } from './Button'
 export { Card } from './Card'
+export { ConfirmModal } from './ConfirmModal'
 export { ExpiryDateTimeModal } from './ExpiryDateTimeModal'
 export { Field } from './Field'
 export { FileTypeBadge } from './FileTypeBadge'

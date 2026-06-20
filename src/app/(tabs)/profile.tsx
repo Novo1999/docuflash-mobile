@@ -1,5 +1,5 @@
 import { Icon, type IconName } from '@/components/Icon'
-import { AppText, IconButton, Pill } from '@/components/ui'
+import { AppText, ConfirmModal, IconButton, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { uploadAvatar } from '@/lib/avatar'
 import { useAuth } from '@/state/AuthProvider'
@@ -21,11 +21,24 @@ export default function ProfileScreen() {
   const { user, logout, updateProfile } = useAuth()
   const [downloadAlerts, setDownloadAlerts] = useState(true)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [signOutOpen, setSignOutOpen] = useState(false)
 
   const name = user?.displayName || user?.email?.split('@')[0] || 'Your account'
   const initial = name.trim().charAt(0).toUpperCase()
 
-  const onChangeAvatar = async () => {
+  const handleAsset = async (asset: ImagePicker.ImagePickerAsset) => {
+    setUploadingAvatar(true)
+    try {
+      const avatarUrl = await uploadAvatar(asset)
+      await updateProfile({ avatarUrl })
+    } catch {
+      Alert.alert('Upload failed', 'Image must be under 1 MB. Please try a smaller image.')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const onPickFromGallery = async () => {
     if (uploadingAvatar) return
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
     if (!permission.granted) {
@@ -38,18 +51,25 @@ export default function ProfileScreen() {
       aspect: [1, 1],
       quality: 0.7,
     })
-    if (result.canceled) return
-    const asset = result.assets[0]
-    if (!asset) return
-    setUploadingAvatar(true)
-    try {
-      const avatarUrl = await uploadAvatar(asset)
-      await updateProfile({ avatarUrl })
-    } catch {
-      Alert.alert('Upload failed', 'Image must be under 1 MB. Please try a smaller image.')
-    } finally {
-      setUploadingAvatar(false)
+    if (result.canceled || !result.assets[0]) return
+    await handleAsset(result.assets[0])
+  }
+
+  const onTakePhoto = async () => {
+    if (uploadingAvatar) return
+    const permission = await ImagePicker.requestCameraPermissionsAsync()
+    if (!permission.granted) {
+      Alert.alert('Permission needed', 'Allow camera access to take a profile picture.')
+      return
     }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    })
+    if (result.canceled || !result.assets[0]) return
+    await handleAsset(result.assets[0])
   }
 
   const cycleAppearance = () => {
@@ -58,11 +78,7 @@ export default function ProfileScreen() {
     setPreference(next)
   }
 
-  const onSignOut = () =>
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign out', style: 'destructive', onPress: () => logout() },
-    ])
+  const onSignOut = () => setSignOutOpen(true)
 
   return (
     <Screen scroll>
@@ -75,7 +91,7 @@ export default function ProfileScreen() {
 
       <View style={{ alignItems: 'center', marginBottom: 22 }}>
         <Pressable
-          onPress={onChangeAvatar}
+          onPress={onPickFromGallery}
           style={{
             width: 84,
             height: 84,
@@ -110,26 +126,13 @@ export default function ProfileScreen() {
             >
               <ActivityIndicator color={colors.primaryText} />
             </View>
-          ) : (
-            <View
-              style={{
-                position: 'absolute',
-                right: 0,
-                bottom: 0,
-                width: 26,
-                height: 26,
-                borderRadius: 13,
-                backgroundColor: colors.accent,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 2,
-                borderColor: colors.surface,
-              }}
-            >
-              <Icon name="upload" size={13} color={colors.primaryText} strokeWidth={1.8} />
-            </View>
-          )}
+          ) : null}
         </Pressable>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 }}>
+          <IconButton name="image" onPress={onPickFromGallery} disabled={uploadingAvatar} size={40} iconSize={18} />
+          <IconButton name="camera" onPress={onTakePhoto} disabled={uploadingAvatar} size={40} iconSize={18} />
+        </View>
         <AppText variant="heading" size={21} color={colors.heading} style={{ marginTop: 14 }}>
           {name}
         </AppText>
@@ -187,6 +190,20 @@ export default function ProfileScreen() {
           Sign out
         </AppText>
       </Pressable>
+
+      <ConfirmModal
+        visible={signOutOpen}
+        icon="logout"
+        tone="danger"
+        title="Sign out"
+        message="Are you sure you want to sign out?"
+        confirmLabel="Sign out"
+        onConfirm={() => {
+          setSignOutOpen(false)
+          logout()
+        }}
+        onClose={() => setSignOutOpen(false)}
+      />
     </Screen>
   )
 }
