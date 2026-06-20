@@ -1,11 +1,14 @@
 import { Icon, type IconName } from '@/components/Icon'
 import { AppText, IconButton, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
+import { uploadAvatar } from '@/lib/avatar'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { ThemePreference } from '@/theme/tokens'
+import { Image } from 'expo-image'
+import * as ImagePicker from 'expo-image-picker'
 import { useState } from 'react'
-import { Alert, Pressable, Switch, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, Switch, View } from 'react-native'
 
 const APPEARANCE_LABEL: Record<ThemePreference, string> = {
   system: 'System',
@@ -15,11 +18,39 @@ const APPEARANCE_LABEL: Record<ThemePreference, string> = {
 
 export default function ProfileScreen() {
   const { colors, radii, preference, setPreference } = useTheme()
-  const { user, logout } = useAuth()
+  const { user, logout, updateProfile } = useAuth()
   const [downloadAlerts, setDownloadAlerts] = useState(true)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   const name = user?.displayName || user?.email?.split('@')[0] || 'Your account'
   const initial = name.trim().charAt(0).toUpperCase()
+
+  const onChangeAvatar = async () => {
+    if (uploadingAvatar) return
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (!permission.granted) {
+      Alert.alert('Permission needed', 'Allow photo access to change your profile picture.')
+      return
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    })
+    if (result.canceled) return
+    const asset = result.assets[0]
+    if (!asset) return
+    setUploadingAvatar(true)
+    try {
+      const avatarUrl = await uploadAvatar(asset)
+      await updateProfile({ avatarUrl })
+    } catch {
+      Alert.alert('Upload failed', 'Image must be under 1 MB. Please try a smaller image.')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
 
   const cycleAppearance = () => {
     const order: ThemePreference[] = ['system', 'light', 'dark']
@@ -43,7 +74,8 @@ export default function ProfileScreen() {
       </View>
 
       <View style={{ alignItems: 'center', marginBottom: 22 }}>
-        <View
+        <Pressable
+          onPress={onChangeAvatar}
           style={{
             width: 84,
             height: 84,
@@ -53,12 +85,51 @@ export default function ProfileScreen() {
             borderColor: colors.accent,
             alignItems: 'center',
             justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
-          <AppText variant="heading" size={30} color={colors.accent}>
-            {initial}
-          </AppText>
-        </View>
+          {user?.avatarUrl ? (
+            <Image source={{ uri: user.avatarUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+          ) : (
+            <AppText variant="heading" size={30} color={colors.accent}>
+              {initial}
+            </AppText>
+          )}
+          {uploadingAvatar ? (
+            <View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(0,0,0,0.35)',
+              }}
+            >
+              <ActivityIndicator color={colors.primaryText} />
+            </View>
+          ) : (
+            <View
+              style={{
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                width: 26,
+                height: 26,
+                borderRadius: 13,
+                backgroundColor: colors.accent,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 2,
+                borderColor: colors.surface,
+              }}
+            >
+              <Icon name="upload" size={13} color={colors.primaryText} strokeWidth={1.8} />
+            </View>
+          )}
+        </Pressable>
         <AppText variant="heading" size={21} color={colors.heading} style={{ marginTop: 14 }}>
           {name}
         </AppText>
@@ -67,30 +138,7 @@ export default function ProfileScreen() {
             {user.email}
           </AppText>
         ) : null}
-        <Pill label="Pro · 10 GB" tone="accent" style={{ marginTop: 11 }} />
-      </View>
-
-      <View
-        style={{
-          backgroundColor: colors.surface,
-          borderWidth: 1,
-          borderColor: colors.border,
-          borderRadius: radii.lg,
-          padding: 16,
-          marginBottom: 16,
-        }}
-      >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 11 }}>
-          <AppText weight="semibold" size={12.5}>
-            Storage
-          </AppText>
-          <AppText size={12} color={colors.mutedSoft}>
-            3.4 GB of 10 GB
-          </AppText>
-        </View>
-        <View style={{ height: 8, borderRadius: 5, backgroundColor: colors.segmentBg, overflow: 'hidden' }}>
-          <View style={{ width: '34%', height: '100%', borderRadius: 5, backgroundColor: colors.accent }} />
-        </View>
+        <Pill label="Pro" tone="accent" style={{ marginTop: 11 }} />
       </View>
 
       <View

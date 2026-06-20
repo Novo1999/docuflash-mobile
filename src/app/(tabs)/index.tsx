@@ -8,6 +8,7 @@ import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
 import { FileAccessType, FileType } from '@/types/file'
 import * as DocumentPicker from 'expo-document-picker'
+import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
@@ -131,11 +132,16 @@ export default function UploadScreen() {
             borderColor: colors.accent,
             alignItems: 'center',
             justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
-          <AppText weight="semibold" size={13} color={colors.primaryText}>
-            {initial}
-          </AppText>
+          {user?.avatarUrl ? (
+            <Image source={{ uri: user.avatarUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+          ) : (
+            <AppText weight="semibold" size={13} color={colors.primaryText}>
+              {initial}
+            </AppText>
+          )}
         </View>
       </View>
 

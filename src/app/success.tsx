@@ -1,6 +1,7 @@
 import { Icon } from '@/components/Icon'
 import { AppText, Button } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
+import { getDeepLink, getFolderDeepLink } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
 import * as Clipboard from 'expo-clipboard'
 import * as MailComposer from 'expo-mail-composer'
@@ -21,8 +22,11 @@ export default function SuccessScreen() {
     expiryLabel: string
   }>()
   const [copied, setCopied] = useState(false)
+  const [deepCopied, setDeepCopied] = useState(false)
 
   const link = params.link ?? ''
+  const token = link.split('/').pop() ?? ''
+  const deepLink = params.kind === 'folder' ? getFolderDeepLink(token) : getDeepLink(token)
   const expiryLabel = params.expiryLabel ?? '7 days'
   const accessLabel = params.access === 'protected' ? 'Protected' : 'Public'
   const count = Number(params.fileCount ?? '1')
@@ -35,6 +39,12 @@ export default function SuccessScreen() {
     await Clipboard.setStringAsync(link)
     setCopied(true)
     setTimeout(() => setCopied(false), 1800)
+  }
+
+  const onCopyDeepLink = async () => {
+    await Clipboard.setStringAsync(deepLink)
+    setDeepCopied(true)
+    setTimeout(() => setDeepCopied(false), 1800)
   }
 
   const onShare = async () => {
@@ -173,6 +183,44 @@ export default function SuccessScreen() {
           <Icon name={copied ? 'check' : 'copy'} size={14} color={colors.primaryText} strokeWidth={1.7} />
           <AppText weight="semibold" size={12.5} color={colors.primaryText}>
             {copied ? 'Copied' : 'Copy'}
+          </AppText>
+        </Pressable>
+      </View>
+
+      <View
+        style={{
+          width: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          backgroundColor: colors.surface,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: radii.md + 1,
+          paddingLeft: 15,
+          paddingRight: 6,
+          paddingVertical: 6,
+          marginTop: 10,
+        }}
+      >
+        <AppText size={13} color={colors.muted} numberOfLines={1} style={{ flex: 1 }}>
+          {deepLink}
+        </AppText>
+        <Pressable
+          onPress={onCopyDeepLink}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            backgroundColor: colors.primaryBg,
+            borderRadius: 11,
+            paddingHorizontal: 14,
+            paddingVertical: 9,
+          }}
+        >
+          <Icon name={deepCopied ? 'check' : 'copy'} size={14} color={colors.primaryText} strokeWidth={1.7} />
+          <AppText weight="semibold" size={12.5} color={colors.primaryText}>
+            {deepCopied ? 'Copied' : 'App link'}
           </AppText>
         </Pressable>
       </View>

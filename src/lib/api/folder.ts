@@ -15,7 +15,7 @@ export async function getMyFolders(): Promise<MyFolderRecord[]> {
 }
 
 export async function getFolderByShareToken(token: string): Promise<FolderRecord> {
-  const response = await apiClient<FolderRecord>(`/api/folders/${token}`)
+  const response = await apiClient<FolderRecord>(`/api/folders/token/${token}`)
   return requireApiData(response, 'Failed to fetch folder')
 }
 
