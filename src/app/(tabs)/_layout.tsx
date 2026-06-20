@@ -44,7 +44,6 @@ export default function TabsLayout() {
           borderTopColor: colors.border,
           borderTopWidth: 1,
           height: 64 + insets.bottom,
-          paddingTop: 4,
           paddingBottom: insets.bottom,
         },
       }}

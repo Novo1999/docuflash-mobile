@@ -1,3 +1,4 @@
+import { UploadProgressBar } from '@/components/ui/UploadProgressBar'
 import { configureGoogleSignin } from '@/lib/googleSignin'
 import { AuthProvider, useAuth } from '@/state/AuthProvider'
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider'
@@ -34,7 +35,7 @@ function RootNavigator() {
   useEffect(() => {
     if (status === 'loading') return
     const inAuth = segments[0] === 'auth'
-    const inPublic = segments[0] === 'share' || segments[0] === 'folder'
+    const inPublic = segments[0] === 'share'
     if (status === 'unauthenticated' && !inAuth && !inPublic) {
       router.replace('/auth')
     } else if (status === 'authenticated' && inAuth) {
@@ -52,6 +53,7 @@ function RootNavigator() {
         <Stack.Screen name="success" options={{ presentation: 'modal' }} />
         <Stack.Screen name="share/[shareToken]" />
       </Stack>
+      <UploadProgressBar />
     </>
   )
 }

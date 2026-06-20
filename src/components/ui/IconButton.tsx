@@ -10,6 +10,7 @@ export function IconButton({
   color,
   tone = 'bordered',
   strokeWidth = 1.7,
+  disabled = false,
   style,
 }: {
   name: IconName
@@ -19,6 +20,7 @@ export function IconButton({
   color?: string
   tone?: 'bordered' | 'plain' | 'filled' | 'danger'
   strokeWidth?: number
+  disabled?: boolean
   style?: ViewStyle
 }) {
   const { colors, radii } = useTheme()
@@ -38,6 +40,7 @@ export function IconButton({
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       style={({ pressed }) => [
         {
           width: size,
@@ -45,7 +48,7 @@ export function IconButton({
           borderRadius: radii.sm,
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: pressed ? 0.7 : 1,
+          opacity: disabled ? 0.4 : pressed ? 0.7 : 1,
         },
         toneStyle,
         style,

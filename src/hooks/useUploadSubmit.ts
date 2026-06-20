@@ -3,8 +3,9 @@ import { deleteFileByShareToken, deleteUploadedStorageFile, uploadFile } from '@
 import { createFolder } from '@/lib/api/folder'
 import { getClientId, getDeviceInfo, getFolderShareLink, getShareLink, resolveFileType, type PickedFile } from '@/lib/upload'
 import { toUploadFile, uploadFiles } from '@/lib/uploadthing'
+import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { FileAccessType, type UploadedShareLink } from '@/types/file'
-import { useState } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai'
 
 export type UploadInput = {
   files: PickedFile[]
@@ -20,7 +21,9 @@ export type UploadOutput = {
 }
 
 export function useUploadSubmit() {
-  const [isUploading, setIsUploading] = useState(false)
+  const isUploading = useAtomValue(isUploadingAtom)
+  const setIsUploading = useSetAtom(isUploadingAtom)
+  const setProgress = useSetAtom(uploadProgressAtom)
 
   const submit = async (input: UploadInput): Promise<UploadOutput> => {
     const selected = input.files.slice(0, MAX_UPLOAD_FILES)
@@ -33,13 +36,19 @@ export function useUploadSubmit() {
     }
 
     setIsUploading(true)
+    setProgress(0)
     const clientId = await getClientId()
     const deviceInfo = getDeviceInfo()
     const password = input.accessType === FileAccessType.PROTECTED ? input.password : undefined
 
     try {
       const uploadables = await Promise.all(selected.map((f) => toUploadFile(f)))
-      const uploaded = await uploadFiles('fileUploader', { files: uploadables })
+      const uploaded = await uploadFiles('fileUploader', {
+        files: uploadables,
+        onUploadProgress: ({ totalProgress }) => setProgress(totalProgress),
+      })
+      // Files are transferred; keep the bar full while we register metadata.
+      setProgress(100)
 
       if (!uploaded || uploaded.length !== filesWithTypes.length) {
         throw new Error('Upload did not return every storage key')
@@ -110,6 +119,7 @@ export function useUploadSubmit() {
       }
     } finally {
       setIsUploading(false)
+      setProgress(0)
     }
   }
 

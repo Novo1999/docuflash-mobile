@@ -1,12 +1,7 @@
 import { Icon } from '@/components/Icon'
 import { AppText, Button, Card, ExpiryDateTimeModal, Field, FileTypeBadge, IconButton, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
-import {
-  ACCEPTED_UPLOAD_MIME_TYPES,
-  EXPIRY_PRESETS,
-  MAX_UPLOAD_FILES,
-  MAX_UPLOAD_FILE_SIZE_BYTES,
-} from '@/constants/upload'
+import { ACCEPTED_UPLOAD_MIME_TYPES, EXPIRY_PRESETS, MAX_UPLOAD_FILES, MAX_UPLOAD_FILE_SIZE_BYTES } from '@/constants/upload'
 import { useUploadSubmit } from '@/hooks/useUploadSubmit'
 import { computeExpireAt, formatFileSize, resolveFileType, type PickedFile } from '@/lib/upload'
 import { useAuth } from '@/state/AuthProvider'
@@ -33,9 +28,7 @@ export default function UploadScreen() {
   const [error, setError] = useState<string | null>(null)
 
   const isCustom = expiryKey === 'custom'
-  const customLabel = customDate
-    ? customDate.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
-    : 'Custom…'
+  const customLabel = customDate ? customDate.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Custom…'
 
   // Seed the picker with the current custom date, or the selected preset's expiry.
   const openPicker = () => {
@@ -94,7 +87,7 @@ export default function UploadScreen() {
     }
     const preset = EXPIRY_PRESETS.find((p) => p.key === expiryKey)
     const expireAt = isCustom && customDate ? customDate.toISOString() : computeExpireAt(preset?.hours ?? 168)
-    const expiryLabel = isCustom && customDate ? customLabel : preset?.label ?? '7 days'
+    const expiryLabel = isCustom && customDate ? customLabel : (preset?.label ?? '7 days')
     try {
       const { links } = await submit({
         files,
@@ -153,39 +146,44 @@ export default function UploadScreen() {
         Encrypted links that vanish on your schedule.
       </AppText>
 
-      <Pressable
-        onPress={pickFiles}
-        style={{
-          borderWidth: 1.5,
-          borderStyle: 'dashed',
-          borderColor: colors.dashBorder,
-          backgroundColor: colors.dashBg,
-          borderRadius: radii.xl,
-          paddingVertical: 24,
-          paddingHorizontal: 18,
-          alignItems: 'center',
-          gap: 10,
-        }}
-      >
-        <View
+      <View pointerEvents={isUploading ? 'none' : 'auto'} style={{ opacity: isUploading ? 0.5 : 1 }}>
+        <Pressable
+          onPress={pickFiles}
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 26,
-            backgroundColor: colors.surface,
+            borderWidth: 1.5,
+            borderStyle: 'dashed',
+            borderColor: colors.dashBorder,
+            backgroundColor: colors.dashBg,
+            borderRadius: radii.xl,
+            paddingVertical: 24,
+            paddingHorizontal: 18,
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 10,
           }}
         >
-          <Icon name="upload" size={24} color={colors.accent} strokeWidth={1.6} />
-        </View>
-        <AppText weight="semibold" size={15} color={colors.text}>
-          Drop files or <AppText weight="semibold" size={15} color={colors.accentText}>browse</AppText>
-        </AppText>
-        <AppText size={11.5} color={colors.mutedSoft} style={{ textAlign: 'center', lineHeight: 16 }}>
-          PDF · DOCX · XLSX · ZIP · TXT{'\n'}Up to 5 files · 16 MB each
-        </AppText>
-      </Pressable>
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 26,
+              backgroundColor: colors.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name="upload" size={24} color={colors.accent} strokeWidth={1.6} />
+          </View>
+          <AppText weight="semibold" size={15} color={colors.text}>
+            Drop files or{' '}
+            <AppText weight="semibold" size={15} color={colors.accentText}>
+              browse
+            </AppText>
+          </AppText>
+          <AppText size={11.5} color={colors.mutedSoft} style={{ textAlign: 'center', lineHeight: 16 }}>
+            PDF · DOCX · XLSX · ZIP · TXT{'\n'}Up to 5 files · 16 MB each
+          </AppText>
+        </Pressable>
+      </View>
 
       {files.length > 0 ? (
         <View style={{ gap: 9, marginTop: 14 }}>
@@ -202,75 +200,83 @@ export default function UploadScreen() {
                     {formatFileSize(f.size)}
                   </AppText>
                 </View>
-                <IconButton name="close" tone="plain" color={colors.mutedSoft} onPress={() => removeFile(f.uri)} />
+                <IconButton
+                  name="close"
+                  tone="plain"
+                  color={colors.mutedSoft}
+                  disabled={isUploading}
+                  onPress={() => removeFile(f.uri)}
+                />
               </Card>
             )
           })}
         </View>
       ) : null}
 
-      <View style={{ marginTop: 16 }}>
-        <Segmented
-          value={access}
-          onChange={setAccess}
-          options={[
-            { value: FileAccessType.PROTECTED, label: 'Protected', icon: 'lock' },
-            { value: FileAccessType.PUBLIC, label: 'Public' },
-          ]}
-        />
-      </View>
-
-      {access === FileAccessType.PROTECTED ? (
-        <View style={{ marginTop: 9 }}>
-          <Field icon="lock" secure placeholder="Set a password" value={password} onChangeText={setPassword} />
+      <View pointerEvents={isUploading ? 'none' : 'auto'} style={{ opacity: isUploading ? 0.5 : 1 }}>
+        <View style={{ marginTop: 16 }}>
+          <Segmented
+            value={access}
+            onChange={setAccess}
+            options={[
+              { value: FileAccessType.PROTECTED, label: 'Protected', icon: 'lock' },
+              { value: FileAccessType.PUBLIC, label: 'Public' },
+            ]}
+          />
         </View>
-      ) : null}
 
-      <AppText size={11.5} color={colors.mutedSoft} style={{ marginTop: 15, marginBottom: 8 }}>
-        Auto-delete after
-      </AppText>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
-        {EXPIRY_PRESETS.map((preset) => {
-          const active = preset.key === expiryKey
-          return (
-            <Pressable
-              key={preset.key}
-              onPress={() => setExpiryKey(preset.key)}
-              style={{
-                alignItems: 'center',
-                paddingVertical: 8,
-                paddingHorizontal: 14,
-                borderRadius: 11,
-                borderWidth: active ? 1.5 : 1,
-                borderColor: active ? colors.accent : colors.borderStrong,
-                backgroundColor: active ? colors.accentSoftBg : 'transparent',
-              }}
-            >
-              <AppText weight="semibold" size={12} color={active ? colors.accentText : colors.muted}>
-                {preset.label}
-              </AppText>
-            </Pressable>
-          )
-        })}
-        <Pressable
-          onPress={openPicker}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingVertical: 8,
-            paddingHorizontal: 14,
-            borderRadius: 11,
-            borderWidth: isCustom ? 1.5 : 1,
-            borderColor: isCustom ? colors.accent : colors.borderStrong,
-            backgroundColor: isCustom ? colors.accentSoftBg : 'transparent',
-          }}
-        >
-          <Icon name="calendar" size={13} color={isCustom ? colors.accentText : colors.muted} strokeWidth={1.7} />
-          <AppText weight="semibold" size={12} color={isCustom ? colors.accentText : colors.muted}>
-            {customLabel}
-          </AppText>
-        </Pressable>
+        {access === FileAccessType.PROTECTED ? (
+          <View style={{ marginTop: 9 }}>
+            <Field icon="lock" secure placeholder="Set a password" value={password} onChangeText={setPassword} />
+          </View>
+        ) : null}
+
+        <AppText size={11.5} color={colors.mutedSoft} style={{ marginTop: 15, marginBottom: 8 }}>
+          Auto-delete after
+        </AppText>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
+          {EXPIRY_PRESETS.map((preset) => {
+            const active = preset.key === expiryKey
+            return (
+              <Pressable
+                key={preset.key}
+                onPress={() => setExpiryKey(preset.key)}
+                style={{
+                  alignItems: 'center',
+                  paddingVertical: 8,
+                  paddingHorizontal: 14,
+                  borderRadius: 11,
+                  borderWidth: active ? 1.5 : 1,
+                  borderColor: active ? colors.accent : colors.borderStrong,
+                  backgroundColor: active ? colors.accentSoftBg : 'transparent',
+                }}
+              >
+                <AppText weight="semibold" size={12} color={active ? colors.accentText : colors.muted}>
+                  {preset.label}
+                </AppText>
+              </Pressable>
+            )
+          })}
+          <Pressable
+            onPress={openPicker}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              paddingVertical: 8,
+              paddingHorizontal: 14,
+              borderRadius: 11,
+              borderWidth: isCustom ? 1.5 : 1,
+              borderColor: isCustom ? colors.accent : colors.borderStrong,
+              backgroundColor: isCustom ? colors.accentSoftBg : 'transparent',
+            }}
+          >
+            <Icon name="calendar" size={13} color={isCustom ? colors.accentText : colors.muted} strokeWidth={1.7} />
+            <AppText weight="semibold" size={12} color={isCustom ? colors.accentText : colors.muted}>
+              {customLabel}
+            </AppText>
+          </Pressable>
+        </View>
       </View>
 
       {error ? (
@@ -288,12 +294,7 @@ export default function UploadScreen() {
         </AppText>
       </View>
 
-      <ExpiryDateTimeModal
-        visible={pickerOpen}
-        value={pickerInitial}
-        onConfirm={onConfirmCustom}
-        onClose={() => setPickerOpen(false)}
-      />
+      <ExpiryDateTimeModal visible={pickerOpen} value={pickerInitial} onConfirm={onConfirmCustom} onClose={() => setPickerOpen(false)} />
     </Screen>
   )
 }
