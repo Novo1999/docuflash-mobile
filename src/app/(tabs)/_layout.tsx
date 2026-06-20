@@ -2,7 +2,7 @@ import { Icon, type IconName } from '@/components/Icon'
 import { AppText } from '@/components/ui'
 import { useTheme } from '@/theme/ThemeProvider'
 import { Tabs } from 'expo-router'
-import { View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 function TabIcon({ name, label, focused }: { name: IconName; label: string; focused: boolean }) {
@@ -26,6 +26,19 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
+        tabBarButton: (props) => (
+          <Pressable
+            onPress={props.onPress}
+            onLongPress={props.onLongPress}
+            accessibilityState={props.accessibilityState}
+            accessibilityLabel={props.accessibilityLabel}
+            testID={props.testID}
+            android_ripple={{ color: colors.border, borderless: false }}
+            style={[props.style, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}
+          >
+            {props.children}
+          </Pressable>
+        ),
         tabBarStyle: {
           backgroundColor: colors.screen,
           borderTopColor: colors.border,

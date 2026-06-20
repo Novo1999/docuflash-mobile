@@ -1,5 +1,5 @@
 import { Icon } from '@/components/Icon'
-import { AppText, Button, Card, Field, FileTypeBadge, IconButton, Segmented } from '@/components/ui'
+import { AppText, Button, Card, ExpiryDateTimeModal, Field, FileTypeBadge, IconButton, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import {
   ACCEPTED_UPLOAD_MIME_TYPES,
@@ -27,7 +27,28 @@ export default function UploadScreen() {
   const [access, setAccess] = useState<FileAccessType>(FileAccessType.PROTECTED)
   const [password, setPassword] = useState('')
   const [expiryKey, setExpiryKey] = useState('7d')
+  const [customDate, setCustomDate] = useState<Date | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerInitial, setPickerInitial] = useState(() => new Date())
   const [error, setError] = useState<string | null>(null)
+
+  const isCustom = expiryKey === 'custom'
+  const customLabel = customDate
+    ? customDate.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+    : 'Custom…'
+
+  // Seed the picker with the current custom date, or the selected preset's expiry.
+  const openPicker = () => {
+    const hours = EXPIRY_PRESETS.find((p) => p.key === expiryKey)?.hours ?? 24
+    setPickerInitial(customDate ?? new Date(Date.now() + hours * 60 * 60 * 1000))
+    setPickerOpen(true)
+  }
+
+  const onConfirmCustom = (date: Date) => {
+    setCustomDate(date)
+    setExpiryKey('custom')
+    setPickerOpen(false)
+  }
 
   const initial = (user?.displayName || user?.email || 'A').trim().charAt(0).toUpperCase()
 
@@ -67,13 +88,19 @@ export default function UploadScreen() {
       setError('Set a password for protected files.')
       return
     }
-    const hours = EXPIRY_PRESETS.find((p) => p.key === expiryKey)?.hours ?? 168
+    if (isCustom && (!customDate || customDate.getTime() <= Date.now())) {
+      setError('Pick a custom expiry time in the future.')
+      return
+    }
+    const preset = EXPIRY_PRESETS.find((p) => p.key === expiryKey)
+    const expireAt = isCustom && customDate ? customDate.toISOString() : computeExpireAt(preset?.hours ?? 168)
+    const expiryLabel = isCustom && customDate ? customLabel : preset?.label ?? '7 days'
     try {
       const { links } = await submit({
         files,
         accessType: access,
         password: access === FileAccessType.PROTECTED ? password : undefined,
-        expireAt: computeExpireAt(hours),
+        expireAt,
       })
       const link = links[0]
       if (!link) throw new Error('No link returned')
@@ -85,7 +112,7 @@ export default function UploadScreen() {
           kind: link.kind ?? 'file',
           access,
           fileCount: String(files.length),
-          expiryKey,
+          expiryLabel,
         },
       })
       setFiles([])
@@ -202,7 +229,7 @@ export default function UploadScreen() {
       <AppText size={11.5} color={colors.mutedSoft} style={{ marginTop: 15, marginBottom: 8 }}>
         Auto-delete after
       </AppText>
-      <View style={{ flexDirection: 'row', gap: 7 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
         {EXPIRY_PRESETS.map((preset) => {
           const active = preset.key === expiryKey
           return (
@@ -210,9 +237,9 @@ export default function UploadScreen() {
               key={preset.key}
               onPress={() => setExpiryKey(preset.key)}
               style={{
-                flex: 1,
                 alignItems: 'center',
                 paddingVertical: 8,
+                paddingHorizontal: 14,
                 borderRadius: 11,
                 borderWidth: active ? 1.5 : 1,
                 borderColor: active ? colors.accent : colors.borderStrong,
@@ -225,6 +252,25 @@ export default function UploadScreen() {
             </Pressable>
           )
         })}
+        <Pressable
+          onPress={openPicker}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingVertical: 8,
+            paddingHorizontal: 14,
+            borderRadius: 11,
+            borderWidth: isCustom ? 1.5 : 1,
+            borderColor: isCustom ? colors.accent : colors.borderStrong,
+            backgroundColor: isCustom ? colors.accentSoftBg : 'transparent',
+          }}
+        >
+          <Icon name="calendar" size={13} color={isCustom ? colors.accentText : colors.muted} strokeWidth={1.7} />
+          <AppText weight="semibold" size={12} color={isCustom ? colors.accentText : colors.muted}>
+            {customLabel}
+          </AppText>
+        </Pressable>
       </View>
 
       {error ? (
@@ -241,6 +287,13 @@ export default function UploadScreen() {
           End-to-end encrypted · Auto-deletes on expiry
         </AppText>
       </View>
+
+      <ExpiryDateTimeModal
+        visible={pickerOpen}
+        value={pickerInitial}
+        onConfirm={onConfirmCustom}
+        onClose={() => setPickerOpen(false)}
+      />
     </Screen>
   )
 }

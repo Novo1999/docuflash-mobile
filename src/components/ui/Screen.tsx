@@ -1,6 +1,7 @@
 import { useTheme } from '@/theme/ThemeProvider'
 import type { ReactNode } from 'react'
-import { ScrollView, View, type ViewStyle } from 'react-native'
+import { View, type ViewStyle } from 'react-native'
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller'
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context'
 
 type ScreenProps = {
@@ -24,13 +25,15 @@ export function Screen({
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.screen }} edges={edges}>
       {scroll ? (
-        <ScrollView
+        <KeyboardAwareScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[{ flexGrow: 1, paddingBottom: 24 }, padding, contentStyle]}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          bottomOffset={24}
         >
           {children}
-        </ScrollView>
+        </KeyboardAwareScrollView>
       ) : (
         <View style={[{ flex: 1 }, padding, contentStyle]}>{children}</View>
       )}

@@ -1,7 +1,6 @@
 import { Icon } from '@/components/Icon'
 import { AppText, Button } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
-import { EXPIRY_PRESETS } from '@/constants/upload'
 import { useTheme } from '@/theme/ThemeProvider'
 import * as Clipboard from 'expo-clipboard'
 import * as MailComposer from 'expo-mail-composer'
@@ -19,12 +18,12 @@ export default function SuccessScreen() {
     kind: string
     access: string
     fileCount: string
-    expiryKey: string
+    expiryLabel: string
   }>()
   const [copied, setCopied] = useState(false)
 
   const link = params.link ?? ''
-  const expiryLabel = EXPIRY_PRESETS.find((p) => p.key === params.expiryKey)?.label ?? '7 days'
+  const expiryLabel = params.expiryLabel ?? '7 days'
   const accessLabel = params.access === 'protected' ? 'Protected' : 'Public'
   const count = Number(params.fileCount ?? '1')
   const summary =

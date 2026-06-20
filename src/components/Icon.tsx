@@ -20,6 +20,7 @@ export type IconName =
   | 'qr'
   | 'eye'
   | 'clock'
+  | 'calendar'
   | 'bell'
   | 'appearance'
   | 'settings'
@@ -132,6 +133,13 @@ export function Icon({ name, size = 18, color = '#000', strokeWidth = 1.7 }: Ico
         <>
           <Circle cx={12} cy={12} r={9} {...common} strokeWidth={1.6} />
           <Path d="M12 7v5l3 2" {...common} strokeWidth={1.6} />
+        </>
+      )}
+      {name === 'calendar' && (
+        <>
+          <Rect x={3} y={4.5} width={18} height={16} rx={2.5} {...common} strokeWidth={1.6} />
+          <Path d="M3 9h18" {...common} strokeWidth={1.6} />
+          <Path d="M8 2.5v4M16 2.5v4" {...common} strokeWidth={1.6} />
         </>
       )}
       {name === 'bell' && (

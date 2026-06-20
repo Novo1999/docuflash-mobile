@@ -41,8 +41,9 @@ export const EXTENSION_TO_FILE_TYPE: Record<string, FileType> = {
 export const SHARE_BASE_URL = process.env.EXPO_PUBLIC_SHARE_BASE_URL ?? 'https://docuflash-frontend.vercel.app'
 
 export const EXPIRY_PRESETS: Preset[] = [
-  { key: '1h', label: '1 hr', hours: 1 },
-  { key: '24h', label: '24 hr', hours: 24 },
+  { key: '1h', label: '1 hour', hours: 1 },
+  { key: '6h', label: '6 hours', hours: 6 },
+  { key: '24h', label: '24 hours', hours: 24 },
+  { key: '3d', label: '3 days', hours: 24 * 3 },
   { key: '7d', label: '7 days', hours: 24 * 7 },
-  { key: '30d', label: '30 days', hours: 24 * 30 },
 ]

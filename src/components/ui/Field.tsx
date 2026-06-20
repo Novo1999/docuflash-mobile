@@ -14,6 +14,7 @@ type FieldProps = TextInputProps & {
 export function Field({ label, icon, secure = false, error, style, ...rest }: FieldProps) {
   const { colors, radii, fonts } = useTheme()
   const [hidden, setHidden] = useState(secure)
+  const hasValue = !!rest.value
 
   return (
     <View>
@@ -39,7 +40,7 @@ export function Field({ label, icon, secure = false, error, style, ...rest }: Fi
         <TextInput
           style={[
             { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text, padding: 0 },
-            secure && hidden ? { letterSpacing: 4 } : null,
+            secure && hidden && hasValue ? { letterSpacing: 4 } : null,
             style,
           ]}
           placeholderTextColor={colors.mutedSoft}
