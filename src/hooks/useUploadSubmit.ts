@@ -13,6 +13,7 @@ export type UploadInput = {
   password?: string
   expireAt: string
   folderName?: string
+  deleteAfterDownload?: boolean
 }
 
 export type UploadOutput = {
@@ -72,6 +73,7 @@ export function useUploadSubmit() {
             accessType: input.accessType,
             expireAt: input.expireAt,
             password,
+            deleteAfterDownload: input.deleteAfterDownload,
             deviceInfo,
           })
 

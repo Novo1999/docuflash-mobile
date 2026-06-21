@@ -11,7 +11,7 @@ import * as DocumentPicker from 'expo-document-picker'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, View } from 'react-native'
+import { Alert, Pressable, Switch, View } from 'react-native'
 
 export default function UploadScreen() {
   const { colors, radii } = useTheme()
@@ -22,6 +22,7 @@ export default function UploadScreen() {
   const [files, setFiles] = useState<PickedFile[]>([])
   const [access, setAccess] = useState<FileAccessType>(FileAccessType.PROTECTED)
   const [password, setPassword] = useState('')
+  const [deleteAfterDownload, setDeleteAfterDownload] = useState(false)
   const [expiryKey, setExpiryKey] = useState('7d')
   const [customDate, setCustomDate] = useState<Date | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -95,6 +96,7 @@ export default function UploadScreen() {
         accessType: access,
         password: access === FileAccessType.PROTECTED ? password : undefined,
         expireAt,
+        deleteAfterDownload,
       })
       const link = links[0]
       if (!link) throw new Error('No link returned')
@@ -111,6 +113,7 @@ export default function UploadScreen() {
       })
       setFiles([])
       setPassword('')
+      setDeleteAfterDownload(false)
     } catch (e) {
       Alert.alert('Upload failed', e instanceof Error ? e.message : 'Please try again.')
     }
@@ -282,6 +285,50 @@ export default function UploadScreen() {
               {customLabel}
             </AppText>
           </Pressable>
+        </View>
+
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            marginTop: 16,
+            padding: 12,
+            borderRadius: radii.lg,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.surface,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                backgroundColor: colors.accentSoftBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Icon name="flame" size={17} color={colors.accent} strokeWidth={1.8} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <AppText weight="semibold" size={13} color={colors.text}>
+                Delete after first download
+              </AppText>
+              <AppText size={11} color={colors.mutedSoft} style={{ marginTop: 2 }}>
+                {files.length > 1 ? 'Each file is removed once downloaded.' : 'File is removed once downloaded.'}
+              </AppText>
+            </View>
+          </View>
+          <Switch
+            value={deleteAfterDownload}
+            onValueChange={setDeleteAfterDownload}
+            trackColor={{ false: colors.borderStrong, true: colors.accent }}
+            thumbColor={colors.surface}
+          />
         </View>
       </View>
 

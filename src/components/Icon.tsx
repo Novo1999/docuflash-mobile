@@ -29,6 +29,7 @@ export type IconName =
   | 'github'
   | 'camera'
   | 'image'
+  | 'flame'
 
 type MaterialName = ComponentProps<typeof MaterialCommunityIcons>['name']
 
@@ -61,6 +62,7 @@ const GLYPHS: Record<IconName, MaterialName> = {
   github: 'github',
   camera: 'camera-outline',
   image: 'image-outline',
+  flame: 'fire',
 }
 
 type IconProps = {

@@ -36,6 +36,7 @@ export type UploadFilePayload = {
   expireAt: string
   password?: string
   downloadCount?: number
+  deleteAfterDownload?: boolean
   deviceInfo?: Record<string, unknown>
 }
 
