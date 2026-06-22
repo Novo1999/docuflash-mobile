@@ -155,6 +155,34 @@ export default function UploadScreen() {
         Encrypted links that vanish on your schedule.
       </AppText>
 
+      <Pressable
+        onPress={() => router.push('/request/new')}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          padding: 12,
+          marginBottom: 14,
+          borderRadius: radii.lg,
+          borderWidth: 1,
+          borderColor: colors.border,
+          backgroundColor: colors.surface,
+        }}
+      >
+        <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: colors.accentSoftBg, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="download" size={17} color={colors.accent} strokeWidth={1.8} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <AppText weight="semibold" size={13} color={colors.text}>
+            Request files
+          </AppText>
+          <AppText size={11} color={colors.mutedSoft} style={{ marginTop: 2 }}>
+            Get an upload link others can send files to
+          </AppText>
+        </View>
+        <Icon name="chevron-right" size={18} color={colors.mutedSoft} strokeWidth={2} />
+      </Pressable>
+
       <View pointerEvents={isUploading ? 'none' : 'auto'} style={{ opacity: isUploading ? 0.5 : 1 }}>
         <Pressable
           onPress={pickFiles}

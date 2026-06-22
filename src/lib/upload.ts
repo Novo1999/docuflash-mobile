@@ -65,12 +65,20 @@ export function getFolderShareLink(shareToken: string): string {
   return `${SHARE_BASE_URL}/folder/${shareToken}`
 }
 
+export function getRequestLink(shareToken: string): string {
+  return `${SHARE_BASE_URL}/request/${shareToken}`
+}
+
 export function getDeepLink(shareToken: string): string {
   return Linking.createURL(`share/${shareToken}`)
 }
 
 export function getFolderDeepLink(shareToken: string): string {
   return Linking.createURL(`folder/${shareToken}`)
+}
+
+export function getRequestDeepLink(shareToken: string): string {
+  return Linking.createURL(`request/${shareToken}`)
 }
 
 export function computeExpireAt(hours: number): string {

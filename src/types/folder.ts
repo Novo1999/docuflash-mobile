@@ -1,4 +1,4 @@
-import type { FileAccessType, FileRecord } from './file'
+import type { FileAccessType, FileRecord, FileType } from './file'
 
 export type CreateFolderPayload = {
   folderName: string
@@ -17,6 +17,23 @@ export type FolderRecord = {
   accessType: FileAccessType
   files: FileRecord[]
   id: string
+  acceptsUploads?: boolean
+}
+
+export type UploadRequestRecord = {
+  shareToken: string
+  folderName: string
+  acceptsUploads: boolean
+  expireAt: string
+}
+
+export type RequestFileUpload = {
+  fileName: string
+  fileType: FileType
+  fileSize: number
+  storageKey: string
+  clientId: string
+  deviceInfo: Record<string, unknown>
 }
 
 export type MyFolderRecord = {

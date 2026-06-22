@@ -34,8 +34,9 @@ function RootNavigator() {
 
   useEffect(() => {
     if (status === 'loading') return
-    const inAuth = segments[0] === 'auth'
-    const inPublic = segments[0] === 'share' || segments[0] === 'folder'
+    const root = segments[0] as string
+    const inAuth = root === 'auth'
+    const inPublic = root === 'share' || root === 'folder' || root === 'request'
     if (status === 'unauthenticated' && !inAuth && !inPublic) {
       router.replace('/auth')
     } else if (status === 'authenticated' && inAuth) {
@@ -53,6 +54,8 @@ function RootNavigator() {
         <Stack.Screen name="success" options={{ presentation: 'modal' }} />
         <Stack.Screen name="share/[shareToken]" />
         <Stack.Screen name="folder/[shareToken]" />
+        <Stack.Screen name="request/new" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="request/[shareToken]" />
       </Stack>
       <UploadProgressBar />
     </>

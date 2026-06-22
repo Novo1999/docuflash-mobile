@@ -1,4 +1,5 @@
-import type { CreateFolderPayload, FolderRecord, MyFolderRecord } from '@/types/folder'
+import type { CreateFolderPayload, FolderRecord, MyFolderRecord, RequestFileUpload, UploadRequestRecord } from '@/types/folder'
+import type { FileRecord } from '@/types/file'
 import { apiClient, requireApiData } from './client'
 
 export async function createFolder(payload: CreateFolderPayload): Promise<FolderRecord> {
@@ -7,6 +8,19 @@ export async function createFolder(payload: CreateFolderPayload): Promise<Folder
   }
   const response = await apiClient<FolderRecord>('/api/folders', { method: 'POST', body: payload })
   return requireApiData(response, 'Failed to create folder')
+}
+
+export async function createUploadRequest(payload: { folderName?: string; clientId?: string }): Promise<UploadRequestRecord> {
+  const response = await apiClient<UploadRequestRecord>('/api/folders/request', { method: 'POST', body: payload })
+  return requireApiData(response, 'Failed to create upload request')
+}
+
+export async function uploadToRequest(token: string, files: RequestFileUpload[]): Promise<FileRecord[]> {
+  const response = await apiClient<FileRecord[]>(`/api/folders/token/${token}/files`, {
+    method: 'POST',
+    body: { files },
+  })
+  return requireApiData(response, 'Failed to upload files')
 }
 
 export async function getMyFolders(search?: string): Promise<MyFolderRecord[]> {
