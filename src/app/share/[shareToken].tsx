@@ -2,12 +2,13 @@ import { Icon } from '@/components/Icon'
 import { AppText, Button, Field, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { getFileByShareToken, getFileDownloadUrl, getFilePreview, verifyFilePassword } from '@/lib/api/files'
+import { openFileInApp, openTextInApp, saveFileToDevice, shareFile, shareText } from '@/lib/files'
 import { formatExpiry, formatFileSize } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
 import { FileAccessType, FileType, type FileRecord } from '@/types/file'
 import { useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, Linking, View } from 'react-native'
+import { ActivityIndicator, Alert, View } from 'react-native'
 
 const TYPE_LABEL: Record<FileType, string> = {
   pdf: 'PDF Document',
@@ -67,14 +68,14 @@ export default function SharedFileScreen() {
   }, [shareToken, password])
 
   const onPreview = async () => {
-    if (!shareToken) return
+    if (!shareToken || !file) return
     setBusy(true)
     try {
       const preview = await getFilePreview(shareToken, accessToken)
       if (preview.kind === 'text') {
-        Alert.alert(file?.fileName ?? 'Preview', preview.text.slice(0, 2000))
+        await openTextInApp(preview.text, file.fileName)
       } else {
-        await Linking.openURL(preview.url)
+        await openFileInApp(preview.url, file.fileName, file.fileType)
       }
     } catch (e) {
       Alert.alert('Preview unavailable', e instanceof Error ? e.message : 'Try downloading instead.')
@@ -83,12 +84,32 @@ export default function SharedFileScreen() {
     }
   }
 
+  const onShare = async () => {
+    if (!shareToken || !file) return
+    setBusy(true)
+    try {
+      const preview = await getFilePreview(shareToken, accessToken)
+      if (preview.kind === 'text') {
+        await shareText(preview.text, file.fileName)
+      } else {
+        await shareFile(preview.url, file.fileName, file.fileType)
+      }
+    } catch (e) {
+      Alert.alert('Share failed', e instanceof Error ? e.message : 'Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const onDownload = async () => {
-    if (!shareToken) return
+    if (!shareToken || !file) return
     setBusy(true)
     try {
       const { fileUrl } = await getFileDownloadUrl(shareToken, accessToken)
-      await Linking.openURL(fileUrl)
+      const result = await saveFileToDevice(fileUrl, file.fileName, file.fileType)
+      if (result.method === 'saved') {
+        Alert.alert('Saved', 'The file was saved to the folder you selected.')
+      }
     } catch (e) {
       Alert.alert('Download failed', e instanceof Error ? e.message : 'Please try again.')
     } finally {
@@ -123,12 +144,7 @@ export default function SharedFileScreen() {
       <AppText variant="heading" size={16} color={colors.heading} style={{ marginTop: 8 }}>
         Docuflash
       </AppText>
-      <Pill
-        label="Someone shared a file with you"
-        tone="accent"
-        icon={<Icon name="lock" size={12} color={colors.accentText} strokeWidth={2} />}
-        style={{ marginTop: 14, marginBottom: 26 }}
-      />
+      <Pill label="Someone shared a file with you" tone="accent" icon={<Icon name="lock" size={12} color={colors.accentText} strokeWidth={2} />} style={{ marginTop: 14, marginBottom: 26 }} />
 
       <View
         style={{
@@ -177,13 +193,7 @@ export default function SharedFileScreen() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, justifyContent: 'center', marginTop: 12 }}>
         <Pill label={TYPE_LABEL[file.fileType] ?? 'File'} />
         <Pill label={formatFileSize(file.fileSize)} />
-        {isProtected ? (
-          <Pill
-            label="Encrypted"
-            tone="accent"
-            icon={<Icon name="lock" size={10} color={colors.accentText} strokeWidth={2.2} />}
-          />
-        ) : null}
+        {isProtected ? <Pill label="Encrypted" tone="accent" icon={<Icon name="lock" size={10} color={colors.accentText} strokeWidth={2.2} />} /> : null}
       </View>
 
       {locked ? (
@@ -197,9 +207,12 @@ export default function SharedFileScreen() {
           <Button title="Unlock file" icon="lock" onPress={unlock} loading={unlocking} />
         </View>
       ) : (
-        <View style={{ width: '100%', flexDirection: 'row', gap: 10, marginTop: 24 }}>
-          <Button title="Preview" variant="outline" icon="eye" onPress={onPreview} loading={busy} style={{ flex: 1 }} />
-          <Button title="Download" icon="download" onPress={onDownload} loading={busy} style={{ flex: 1.3 }} />
+        <View style={{ width: '100%', gap: 10, marginTop: 24 }}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Button title="Preview" variant="outline" icon="eye" onPress={onPreview} loading={busy} style={{ flex: 1 }} />
+            <Button title="Download" icon="download" onPress={onDownload} loading={busy} style={{ flex: 1 }} />
+          </View>
+          <Button title="Share" variant="outline" icon="share" onPress={onShare} loading={busy} />
         </View>
       )}
 

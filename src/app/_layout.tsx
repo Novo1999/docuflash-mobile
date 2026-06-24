@@ -2,17 +2,8 @@ import { UploadProgressBar } from '@/components/ui/UploadProgressBar'
 import { configureGoogleSignin } from '@/lib/googleSignin'
 import { AuthProvider, useAuth } from '@/state/AuthProvider'
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider'
-import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-} from '@expo-google-fonts/dm-sans'
-import {
-  SourceSerif4_400Regular,
-  SourceSerif4_600SemiBold,
-  SourceSerif4_700Bold,
-} from '@expo-google-fonts/source-serif-4'
+import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from '@expo-google-fonts/dm-sans'
+import { SourceSerif4_400Regular, SourceSerif4_600SemiBold, SourceSerif4_700Bold } from '@expo-google-fonts/source-serif-4'
 import { useFonts } from 'expo-font'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
@@ -37,6 +28,9 @@ function RootNavigator() {
     const root = segments[0] as string
     const inAuth = root === 'auth'
     const inPublic = root === 'share' || root === 'folder' || root === 'request'
+
+    console.log('[RootNavigator] path:', `/${segments.join('/')}`)
+
     if (status === 'unauthenticated' && !inAuth && !inPublic) {
       router.replace('/auth')
     } else if (status === 'authenticated' && inAuth) {

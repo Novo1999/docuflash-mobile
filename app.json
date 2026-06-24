@@ -3,6 +3,12 @@
     "name": "Docuflash",
     "slug": "docuflash-mobile",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7b366d99-ded1-476e-a8a2-aa89420c8f4f"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "docuflashmobile",

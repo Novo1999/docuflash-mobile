@@ -10,7 +10,7 @@ import type { MyFolderRecord } from '@/types/folder'
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, Alert, Linking, Pressable, RefreshControl, ScrollView, TextInput, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function UploadsScreen() {
@@ -166,7 +166,7 @@ export default function UploadsScreen() {
                 key={file.id}
                 file={file}
                 onCopy={() => copy(getShareLink(file.shareToken))}
-                onOpen={() => Linking.openURL(getShareLink(file.shareToken))}
+                onOpen={() => router.push(`/share/${file.shareToken}`)}
                 onDelete={() => confirmDeleteFile(file.shareToken)}
               />
             ))}
@@ -218,6 +218,7 @@ function FolderCard({
   onDelete: () => void
 }) {
   const { colors } = useTheme()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [children, setChildren] = useState<FileRecord[] | null>(null)
   const [loadingChildren, setLoadingChildren] = useState(false)
@@ -267,7 +268,8 @@ function FolderCard({
             </AppText>
           </View>
         </View>
-        <IconButton name="copy" onPress={onCopy} />
+        <IconButton name="external" onPress={() => router.push(`/folder/${folder.shareToken}`)} />
+        <IconButton name="copy" onPress={onCopy} style={{ marginLeft: 6 }} />
         <IconButton name="trash" tone="danger" onPress={onDelete} style={{ marginLeft: 6 }} />
       </Pressable>
 
@@ -277,7 +279,11 @@ function FolderCard({
             <ActivityIndicator color={colors.accent} />
           ) : children && children.length > 0 ? (
             children.map((file) => (
-              <View key={file.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}>
+              <Pressable
+                key={file.id}
+                onPress={() => router.push(`/share/${file.shareToken}`)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}
+              >
                 <FileTypeBadge type={file.fileType} size={32} radius={9} />
                 <View style={{ flex: 1 }}>
                   <AppText weight="medium" size={12.5} numberOfLines={1}>
@@ -287,7 +293,8 @@ function FolderCard({
                     {formatFileSize(file.fileSize)} · {file.downloadCount} downloads
                   </AppText>
                 </View>
-              </View>
+                <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} />
+              </Pressable>
             ))
           ) : (
             <AppText size={11.5} color={colors.mutedSoft}>
