@@ -75,6 +75,9 @@
     "build:android": "npx --yes eas-cli@latest build --profile production --platform android",
     "build:ios": "npx --yes eas-cli@latest build --profile production --platform ios",
     "build": "npx --yes eas-cli@latest build --profile production --platform all",
+    "prebuild:clean": "expo prebuild --clean",
+    "prebuild:clean:android": "expo prebuild --clean -p android",
+    "prebuild:clean:ios": "expo prebuild --clean -p ios",
     "update:development": "npx --yes eas-cli@latest update --branch development",
     "update:preview": "npx --yes eas-cli@latest update --branch preview",
     "update:production": "npx --yes eas-cli@latest update --branch production"
