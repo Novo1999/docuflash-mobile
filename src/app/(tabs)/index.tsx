@@ -10,7 +10,7 @@ import { FileAccessType, FileType } from '@/types/file'
 import * as DocumentPicker from 'expo-document-picker'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Alert, Pressable, Switch, View } from 'react-native'
 
 export default function UploadScreen() {
@@ -46,6 +46,12 @@ export default function UploadScreen() {
   }
 
   const initial = (user?.displayName || user?.email || 'A').trim().charAt(0).toUpperCase()
+
+  useEffect(() => {
+    if (!user) return
+    setAccess(user.defaultPrivacy === 'public' ? FileAccessType.PUBLIC : FileAccessType.PROTECTED)
+    setExpiryKey(user.defaultExpiry ?? '7d')
+  }, [user])
 
   const pickFiles = async () => {
     setError(null)
@@ -237,13 +243,7 @@ export default function UploadScreen() {
                     {formatFileSize(f.size)}
                   </AppText>
                 </View>
-                <IconButton
-                  name="close"
-                  tone="plain"
-                  color={colors.mutedSoft}
-                  disabled={isUploading}
-                  onPress={() => removeFile(f.uri)}
-                />
+                <IconButton name="close" tone="plain" color={colors.mutedSoft} disabled={isUploading} onPress={() => removeFile(f.uri)} />
               </Card>
             )
           })}
@@ -351,12 +351,7 @@ export default function UploadScreen() {
               </AppText>
             </View>
           </View>
-          <Switch
-            value={deleteAfterDownload}
-            onValueChange={setDeleteAfterDownload}
-            trackColor={{ false: colors.borderStrong, true: colors.accent }}
-            thumbColor={colors.surface}
-          />
+          <Switch value={deleteAfterDownload} onValueChange={setDeleteAfterDownload} trackColor={{ false: colors.borderStrong, true: colors.accent }} thumbColor={colors.surface} />
         </View>
       </View>
 

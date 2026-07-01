@@ -1,14 +1,15 @@
 import { Icon, type IconName } from '@/components/Icon'
-import { AppText, ConfirmModal, IconButton, Pill } from '@/components/ui'
+import { AppText, ConfirmModal, IconButton, Pill, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { uploadAvatar } from '@/lib/avatar'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { ThemePreference } from '@/theme/tokens'
+import { FileAccessType } from '@/types/file'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, Switch, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native'
 
 const APPEARANCE_LABEL: Record<ThemePreference, string> = {
   system: 'System',
@@ -19,7 +20,10 @@ const APPEARANCE_LABEL: Record<ThemePreference, string> = {
 export default function ProfileScreen() {
   const { colors, radii, preference, setPreference } = useTheme()
   const { user, logout, updateProfile } = useAuth()
-  const [downloadAlerts, setDownloadAlerts] = useState(true)
+  const initialExpiry = user?.defaultExpiry ?? '7d'
+  const initialPrivacy = user?.defaultPrivacy === FileAccessType.PUBLIC ? FileAccessType.PUBLIC : FileAccessType.PROTECTED
+  const [expiryKey, setExpiryKey] = useState(initialExpiry)
+  const [privacy, setPrivacy] = useState<FileAccessType>(initialPrivacy)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [signOutOpen, setSignOutOpen] = useState(false)
 
@@ -72,6 +76,27 @@ export default function ProfileScreen() {
     await handleAsset(result.assets[0])
   }
 
+  const saveSettings = async (newExpiryKey: string, newPrivacy: FileAccessType) => {
+    if (!user) return
+    try {
+      await updateProfile({ defaultExpiry: newExpiryKey, defaultPrivacy: newPrivacy })
+    } catch (error) {
+      Alert.alert('Unable to save settings', error instanceof Error ? error.message : 'Try again.')
+      setExpiryKey(user.defaultExpiry ?? '7d')
+      setPrivacy(user.defaultPrivacy === FileAccessType.PUBLIC ? FileAccessType.PUBLIC : FileAccessType.PROTECTED)
+    }
+  }
+
+  const onChangeExpiry = (value: string) => {
+    setExpiryKey(value)
+    saveSettings(value, privacy)
+  }
+
+  const onChangePrivacy = (value: FileAccessType) => {
+    setPrivacy(value)
+    saveSettings(expiryKey, value)
+  }
+
   const cycleAppearance = () => {
     const order: ThemePreference[] = ['system', 'light', 'dark']
     const next = order[(order.indexOf(preference) + 1) % order.length]
@@ -81,7 +106,7 @@ export default function ProfileScreen() {
   const onSignOut = () => setSignOutOpen(true)
 
   return (
-    <Screen scroll>
+    <Screen key={user?.id ?? 'anonymous'} scroll>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, marginBottom: 22 }}>
         <AppText variant="heading" size={28} color={colors.heading}>
           Profile
@@ -153,20 +178,31 @@ export default function ProfileScreen() {
           overflow: 'hidden',
         }}
       >
-        <SettingRow icon="clock" label="Default expiry" value="7 days" />
-        <SettingRow icon="lock" label="Default privacy" value="Protected" />
-        <SettingRow
-          icon="bell"
-          label="Download alerts"
-          right={
-            <Switch
-              value={downloadAlerts}
-              onValueChange={setDownloadAlerts}
-              trackColor={{ true: colors.accent, false: colors.segmentBg }}
-              thumbColor={colors.surface}
-            />
-          }
-        />
+        <SettingRowStacked icon="clock" label="Default expiry">
+          <Segmented
+            options={[
+              { value: '1h', label: '1h' },
+              { value: '6h', label: '6h' },
+              { value: '24h', label: '24h' },
+              { value: '3d', label: '3d' },
+              { value: '7d', label: '7d' },
+            ]}
+            value={expiryKey}
+            onChange={onChangeExpiry}
+          />
+        </SettingRowStacked>
+
+        <SettingRowStacked icon="lock" label="Default privacy">
+          <Segmented
+            options={[
+              { value: FileAccessType.PROTECTED, label: 'Protected', icon: 'lock' },
+              { value: FileAccessType.PUBLIC, label: 'Public' },
+            ]}
+            value={privacy}
+            onChange={onChangePrivacy}
+          />
+        </SettingRowStacked>
+
         <SettingRow icon="appearance" label="Appearance" value={APPEARANCE_LABEL[preference]} onPress={cycleAppearance} last />
       </View>
 
@@ -208,21 +244,7 @@ export default function ProfileScreen() {
   )
 }
 
-function SettingRow({
-  icon,
-  label,
-  value,
-  right,
-  onPress,
-  last,
-}: {
-  icon: IconName
-  label: string
-  value?: string
-  right?: React.ReactNode
-  onPress?: () => void
-  last?: boolean
-}) {
+function SettingRow({ icon, label, value, right, onPress, last }: { icon: IconName; label: string; value?: string; right?: React.ReactNode; onPress?: () => void; last?: boolean }) {
   const { colors } = useTheme()
   return (
     <Pressable
@@ -247,7 +269,30 @@ function SettingRow({
         </AppText>
       ) : null}
       {right}
-      {onPress || value ? (right ? null : <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} />) : null}
+      {onPress || value ? right ? null : <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} /> : null}
     </Pressable>
+  )
+}
+
+function SettingRowStacked({ icon, label, children, last }: { icon: IconName; label: string; children: React.ReactNode; last?: boolean }) {
+  const { colors } = useTheme()
+  return (
+    <View
+      style={{
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        borderBottomWidth: last ? 0 : 1,
+        borderBottomColor: colors.border,
+        gap: 10,
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+        <Icon name={icon} size={18} color={colors.muted} strokeWidth={1.6} />
+        <AppText weight="medium" size={13.5}>
+          {label}
+        </AppText>
+      </View>
+      {children}
+    </View>
   )
 }
