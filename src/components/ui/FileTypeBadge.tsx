@@ -24,6 +24,7 @@ export function FileTypeBadge({ type, size = 40, radius = 12 }: { type: FileType
         width: size,
         height: size,
         borderRadius: radius,
+        borderCurve: 'continuous',
         backgroundColor: badge.bg,
         alignItems: 'center',
         justifyContent: 'center',

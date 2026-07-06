@@ -32,6 +32,7 @@ export function Field({ label, icon, secure = false, error, style, ...rest }: Fi
           borderWidth: 1,
           borderColor: error ? colors.danger : colors.borderStrong,
           borderRadius: radii.md,
+          borderCurve: 'continuous',
           paddingHorizontal: 14,
           paddingVertical: 13,
         }}

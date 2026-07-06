@@ -16,7 +16,7 @@ export function Segmented<T extends string>({
 }) {
   const { colors, radii } = useTheme()
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: colors.segmentBg, borderRadius: radii.sm + 3, padding: 4 }}>
+    <View style={{ flexDirection: 'row', backgroundColor: colors.segmentBg, borderRadius: radii.sm + 3, borderCurve: 'continuous', padding: 4 }}>
       {options.map((opt) => {
         const active = opt.value === value
         return (
@@ -31,6 +31,7 @@ export function Segmented<T extends string>({
               gap: 6,
               paddingVertical: 8,
               borderRadius: radii.sm,
+              borderCurve: 'continuous',
               backgroundColor: active ? colors.segmentActiveBg : 'transparent',
             }}
           >

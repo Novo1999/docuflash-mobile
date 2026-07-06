@@ -22,17 +22,10 @@ export function Card({
           borderWidth: 1,
           borderColor: colors.border,
           borderRadius: radii.lg + 2,
+          borderCurve: 'continuous',
           padding,
         },
-        elevated && mode === 'light'
-          ? {
-              shadowColor: '#0f1c2e',
-              shadowOpacity: 0.04,
-              shadowRadius: 10,
-              shadowOffset: { width: 0, height: 3 },
-              elevation: 1,
-            }
-          : null,
+        elevated && mode === 'light' ? { boxShadow: '0 3px 10px rgba(15, 28, 46, 0.04)' } : null,
         style,
       ]}
     >

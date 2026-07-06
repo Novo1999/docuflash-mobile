@@ -30,6 +30,7 @@ export function Button({
 
   const base: ViewStyle = {
     borderRadius: radii.md + 2,
+    borderCurve: 'continuous',
     paddingVertical: 15,
     paddingHorizontal: 16,
     flexDirection: 'row',

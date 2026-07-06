@@ -46,6 +46,7 @@ export function IconButton({
           width: size,
           height: size,
           borderRadius: radii.sm,
+          borderCurve: 'continuous',
           alignItems: 'center',
           justifyContent: 'center',
           opacity: disabled ? 0.4 : pressed ? 0.7 : 1,

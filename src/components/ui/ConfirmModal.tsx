@@ -60,6 +60,7 @@ export function ConfirmModal({
             borderWidth: 1,
             borderColor: colors.border,
             borderRadius: radii.xl,
+            borderCurve: 'continuous',
             paddingHorizontal: 22,
             paddingTop: 24,
             paddingBottom: 18,

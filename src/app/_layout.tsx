@@ -29,8 +29,6 @@ function RootNavigator() {
     const inAuth = root === 'auth'
     const inPublic = root === 'share' || root === 'folder' || root === 'request'
 
-    console.log('[RootNavigator] path:', `/${segments.join('/')}`)
-
     if (status === 'unauthenticated' && !inAuth && !inPublic) {
       router.replace('/auth')
     } else if (status === 'authenticated' && inAuth) {

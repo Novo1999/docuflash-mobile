@@ -21,25 +21,27 @@ export function UploadProgressBar() {
 
   useEffect(() => {
     if (isUploading) {
-      opacity.value = withTiming(1, { duration: 150 })
+      opacity.set(withTiming(1, { duration: 150 }))
     } else {
       // Fill to 100% on completion, then fade out and reset.
-      width.value = withTiming(100, { duration: 200 })
-      opacity.value = withTiming(0, { duration: 400 }, (done) => {
-        if (done) width.value = 0
-      })
+      width.set(withTiming(100, { duration: 200 }))
+      opacity.set(
+        withTiming(0, { duration: 400 }, (done) => {
+          if (done) width.set(0)
+        }),
+      )
     }
   }, [isUploading, opacity, width])
 
   useEffect(() => {
     if (isUploading) {
       // Keep a visible sliver before real progress arrives.
-      width.value = withTiming(Math.max(progress, 6), { duration: 250 })
+      width.set(withTiming(Math.max(progress, 6), { duration: 250 }))
     }
   }, [progress, isUploading, width])
 
-  const containerStyle = useAnimatedStyle(() => ({ opacity: opacity.value }))
-  const fillStyle = useAnimatedStyle(() => ({ width: `${width.value}%` }))
+  const containerStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }))
+  const fillStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: width.get() / 100 }] }))
 
   return (
     <Animated.View pointerEvents="none" style={[styles.container, { top: insets.top, backgroundColor: colors.border }, containerStyle]}>
@@ -57,6 +59,8 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   fill: {
+    width: '100%',
     height: '100%',
+    transformOrigin: 'left',
   },
 })
