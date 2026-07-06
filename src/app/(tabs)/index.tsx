@@ -126,7 +126,7 @@ export default function UploadScreen() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll edges={['top']}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6 }}>
         <AppText variant="heading" size={21} color={colors.heading}>
           Docuflash
@@ -154,8 +154,8 @@ export default function UploadScreen() {
         </View>
       </View>
 
-      <AppText variant="heading" size={32} color={colors.heading} lineHeight={36} style={{ marginTop: 22 }}>
-        Share files, privately.
+      <AppText variant="heading" size={26} color={colors.heading} lineHeight={36} style={{ marginTop: 22 }}>
+        Share documents, privately.
       </AppText>
       <AppText size={13.5} color={colors.muted} lineHeight={20} style={{ marginTop: 6, marginBottom: 18 }}>
         Encrypted links that vanish on your schedule.

@@ -1,3 +1,4 @@
+import { OAuthButton } from '@/components/auth'
 import { Icon } from '@/components/Icon'
 import { AppText, Button, Field, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
@@ -11,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { ActivityIndicator, Alert, Pressable, View } from 'react-native'
+import { Alert, View } from 'react-native'
 
 type Mode = 'signin' | 'signup'
 
@@ -218,63 +219,5 @@ export default function AuthScreen() {
         By continuing you agree to our Terms and Privacy Policy.
       </AppText>
     </Screen>
-  )
-}
-
-function OAuthButton({
-  label,
-  icon,
-  onPress,
-  loading,
-}: {
-  label: string
-  icon?: boolean
-  onPress: () => void
-  loading?: boolean
-}) {
-  const { colors, radii } = useTheme()
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={loading}
-      style={({ pressed }) => ({
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 9,
-        borderWidth: 1,
-        borderColor: colors.borderStrong,
-        backgroundColor: colors.surface,
-        borderRadius: radii.md,
-        paddingVertical: 13,
-        opacity: loading ? 0.6 : pressed ? 0.85 : 1,
-      })}
-    >
-      {loading ? (
-        <ActivityIndicator size="small" color={colors.text} />
-      ) : icon ? (
-        <Icon name="github" size={17} color={colors.text} />
-      ) : (
-        <View
-          style={{
-            width: 18,
-            height: 18,
-            borderRadius: 9,
-            borderWidth: 1.5,
-            borderColor: colors.text,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <AppText variant="heading" size={11} weight="bold" color={colors.text}>
-            G
-          </AppText>
-        </View>
-      )}
-      <AppText weight="semibold" size={13} color={colors.text}>
-        {label}
-      </AppText>
-    </Pressable>
   )
 }

@@ -1,4 +1,5 @@
-import { Icon, type IconName } from '@/components/Icon'
+import { Icon } from '@/components/Icon'
+import { SettingRow, SettingRowStacked } from '@/components/profile'
 import { AppText, ConfirmModal, IconButton, Pill, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { uploadAvatar } from '@/lib/avatar'
@@ -106,7 +107,7 @@ export default function ProfileScreen() {
   const onSignOut = () => setSignOutOpen(true)
 
   return (
-    <Screen key={user?.id ?? 'anonymous'} scroll>
+    <Screen key={user?.id ?? 'anonymous'} scroll edges={['top']}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 6, marginBottom: 22 }}>
         <AppText variant="heading" size={28} color={colors.heading}>
           Profile
@@ -241,58 +242,5 @@ export default function ProfileScreen() {
         onClose={() => setSignOutOpen(false)}
       />
     </Screen>
-  )
-}
-
-function SettingRow({ icon, label, value, right, onPress, last }: { icon: IconName; label: string; value?: string; right?: React.ReactNode; onPress?: () => void; last?: boolean }) {
-  const { colors } = useTheme()
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 13,
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: colors.border,
-      }}
-    >
-      <Icon name={icon} size={18} color={colors.muted} strokeWidth={1.6} />
-      <AppText weight="medium" size={13.5} style={{ flex: 1 }}>
-        {label}
-      </AppText>
-      {value ? (
-        <AppText weight="semibold" size={12.5} color={colors.mutedSoft}>
-          {value}
-        </AppText>
-      ) : null}
-      {right}
-      {onPress || value ? right ? null : <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} /> : null}
-    </Pressable>
-  )
-}
-
-function SettingRowStacked({ icon, label, children, last }: { icon: IconName; label: string; children: React.ReactNode; last?: boolean }) {
-  const { colors } = useTheme()
-  return (
-    <View
-      style={{
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: colors.border,
-        gap: 10,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
-        <Icon name={icon} size={18} color={colors.muted} strokeWidth={1.6} />
-        <AppText weight="medium" size={13.5}>
-          {label}
-        </AppText>
-      </View>
-      {children}
-    </View>
   )
 }

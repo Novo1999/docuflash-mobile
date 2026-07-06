@@ -1,4 +1,5 @@
 import { Icon } from '@/components/Icon'
+import { DetailRow } from '@/components/share'
 import { AppText, Button, Field, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { getFileByShareToken, getFileDownloadUrl, getFilePreview, verifyFilePassword } from '@/lib/api/files'
@@ -244,29 +245,6 @@ export default function SharedFileScreen() {
         </AppText>
       </View>
     </Screen>
-  )
-}
-
-function DetailRow({ label, value, accent, last }: { label: string; value: string; accent?: boolean; last?: boolean }) {
-  const { colors } = useTheme()
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 13,
-        borderBottomWidth: last ? 0 : 1,
-        borderBottomColor: colors.border,
-      }}
-    >
-      <AppText size={12.5} color={colors.mutedSoft}>
-        {label}
-      </AppText>
-      <AppText weight="semibold" size={12.5} color={accent ? colors.accentText : colors.text}>
-        {value}
-      </AppText>
-    </View>
   )
 }
 
