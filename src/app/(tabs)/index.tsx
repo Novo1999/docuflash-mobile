@@ -20,6 +20,7 @@ export default function UploadScreen() {
   const { submit, isUploading } = useUploadSubmit()
 
   const [files, setFiles] = useState<PickedFile[]>([])
+  const [folderName, setFolderName] = useState('')
   const [access, setAccess] = useState<FileAccessType>(FileAccessType.PROTECTED)
   const [password, setPassword] = useState('')
   const [deleteAfterDownload, setDeleteAfterDownload] = useState(false)
@@ -102,6 +103,7 @@ export default function UploadScreen() {
         accessType: access,
         password: access === FileAccessType.PROTECTED ? password : undefined,
         expireAt,
+        folderName: files.length > 1 ? folderName : undefined,
         deleteAfterDownload,
       })
       const link = links[0]
@@ -118,6 +120,7 @@ export default function UploadScreen() {
         },
       })
       setFiles([])
+      setFolderName('')
       setPassword('')
       setDeleteAfterDownload(false)
     } catch (e) {
@@ -251,6 +254,19 @@ export default function UploadScreen() {
       ) : null}
 
       <View pointerEvents={isUploading ? 'none' : 'auto'} style={{ opacity: isUploading ? 0.5 : 1 }}>
+        {files.length > 1 ? (
+          <View style={{ marginTop: 16 }}>
+            <Field
+              label="Folder name"
+              icon="folder"
+              placeholder="e.g. Tax documents 2026"
+              value={folderName}
+              onChangeText={setFolderName}
+              autoCapitalize="sentences"
+            />
+          </View>
+        ) : null}
+
         <View style={{ marginTop: 16 }}>
           <Segmented
             value={access}

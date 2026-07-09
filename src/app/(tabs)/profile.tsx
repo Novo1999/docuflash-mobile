@@ -167,7 +167,6 @@ export default function ProfileScreen() {
             {user.email}
           </AppText>
         ) : null}
-        <Pill label="Pro" tone="accent" style={{ marginTop: 11 }} />
       </View>
 
       <View

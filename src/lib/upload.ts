@@ -3,7 +3,6 @@ import { FileType } from '@/types/file'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Crypto from 'expo-crypto'
 import * as Device from 'expo-device'
-import * as Linking from 'expo-linking'
 import { Platform } from 'react-native'
 
 const CLIENT_ID_STORAGE_KEY = 'docuflash_client_id'
@@ -67,18 +66,6 @@ export function getFolderShareLink(shareToken: string): string {
 
 export function getRequestLink(shareToken: string): string {
   return `${SHARE_BASE_URL}/request/${shareToken}`
-}
-
-export function getDeepLink(shareToken: string): string {
-  return Linking.createURL(`share/${shareToken}`)
-}
-
-export function getFolderDeepLink(shareToken: string): string {
-  return Linking.createURL(`folder/${shareToken}`)
-}
-
-export function getRequestDeepLink(shareToken: string): string {
-  return Linking.createURL(`request/${shareToken}`)
 }
 
 export function computeExpireAt(hours: number): string {
