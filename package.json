@@ -78,9 +78,9 @@
     "prebuild:clean": "expo prebuild --clean",
     "prebuild:clean:android": "expo prebuild --clean -p android",
     "prebuild:clean:ios": "expo prebuild --clean -p ios",
-    "update:development": "npx --yes eas-cli@latest update --branch development",
-    "update:preview": "npx --yes eas-cli@latest update --branch preview",
-    "update:production": "npx --yes eas-cli@latest update --branch production"
+    "update:development": "npx --yes eas-cli@latest update --branch development --environment development -m",
+    "update:preview": "npx --yes eas-cli@latest update --branch preview --environment preview -m",
+    "update:production": "npx --yes eas-cli@latest update --branch production --environment production -m"
   },
   "private": true
 }
