@@ -20,9 +20,17 @@ export type FolderRecord = {
   acceptsUploads?: boolean
 }
 
+export type CreateUploadRequestPayload = {
+  folderName?: string
+  clientId?: string
+  accessType?: FileAccessType
+  password?: string
+}
+
 export type UploadRequestRecord = {
   shareToken: string
   folderName: string
+  accessType: FileAccessType
   acceptsUploads: boolean
   expireAt: string
 }

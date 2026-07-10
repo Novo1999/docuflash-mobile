@@ -1,16 +1,17 @@
 import { Icon } from '@/components/Icon'
+import { RequestPasswordGate } from '@/components/request'
 import { AppText, Button, Card, FileTypeBadge, IconButton, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { ACCEPTED_UPLOAD_MIME_TYPES, MAX_UPLOAD_FILES, MAX_UPLOAD_FILE_SIZE_BYTES } from '@/constants/upload'
 import { useRequestRealtime, type UploadingPayload } from '@/hooks/useRequestRealtime'
 import { deleteUploadedStorageFile } from '@/lib/api/files'
-import { getFolderByShareToken, uploadToRequest } from '@/lib/api/folder'
+import { getFolderByShareToken, unlockFolderByShareToken, uploadToRequest } from '@/lib/api/folder'
 import { formatExpiry, formatFileSize, getClientId, getDeviceInfo, resolveFileType, type PickedFile } from '@/lib/upload'
 import { toUploadFile, uploadFiles } from '@/lib/uploadthing'
 import { useAuth } from '@/state/AuthProvider'
 import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { useTheme } from '@/theme/ThemeProvider'
-import { FileType } from '@/types/file'
+import { FileAccessType, FileType } from '@/types/file'
 import type { FolderRecord, RequestFileUpload } from '@/types/folder'
 import * as DocumentPicker from 'expo-document-picker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
@@ -35,15 +36,39 @@ export default function RequestUploadScreen() {
   const [error, setError] = useState<string | null>(null)
   const [incoming, setIncoming] = useState<UploadingPayload | null>(null)
 
+  const [folderPassword, setFolderPassword] = useState<string | null>(null)
+  const [unlocking, setUnlocking] = useState(false)
+  const [unlockError, setUnlockError] = useState<string | null>(null)
+
+  const isProtected = folder?.accessType === FileAccessType.PROTECTED
+  const locked = isProtected && folderPassword === null
+
+  // A protected request only ever returns its files from /unlock, so once unlocked the
+  // refresh has to go back through it — getFolderByShareToken would empty the list.
   const refetch = useCallback(async () => {
     if (!shareToken) return
     try {
-      const res = await getFolderByShareToken(shareToken)
+      const res = folderPassword ? await unlockFolderByShareToken(shareToken, folderPassword) : await getFolderByShareToken(shareToken)
       setFolder(res)
     } catch {
       // keep the current list if a refetch fails
     }
-  }, [shareToken])
+  }, [shareToken, folderPassword])
+
+  const onUnlock = async (password: string) => {
+    if (!shareToken || !password) return
+    setUnlocking(true)
+    setUnlockError(null)
+    try {
+      const unlocked = await unlockFolderByShareToken(shareToken, password)
+      setFolder(unlocked)
+      setFolderPassword(password)
+    } catch (e) {
+      setUnlockError(e instanceof Error ? e.message : 'Invalid password')
+    } finally {
+      setUnlocking(false)
+    }
+  }
 
   useEffect(() => {
     if (!shareToken) return
@@ -70,7 +95,7 @@ export default function RequestUploadScreen() {
     },
     onComplete: () => {
       setIncoming(null)
-      void refetch()
+      if (!locked) void refetch()
     },
   })
 
@@ -140,7 +165,7 @@ export default function RequestUploadScreen() {
       })
 
       try {
-        await uploadToRequest(shareToken, payload)
+        await uploadToRequest(shareToken, payload, folderPassword ?? undefined)
       } catch (attachError) {
         await Promise.allSettled(uploaded.map((file) => deleteUploadedStorageFile(file.key)))
         throw attachError
@@ -180,6 +205,20 @@ export default function RequestUploadScreen() {
     )
   }
 
+  if (locked) {
+    return (
+      <Screen scroll contentStyle={{ alignItems: 'center', paddingHorizontal: 26, justifyContent: 'center' }}>
+        <RequestPasswordGate
+          folderName={folder.folderName}
+          error={unlockError}
+          unlocking={unlocking}
+          onUnlock={onUnlock}
+          onPasswordChange={() => setUnlockError(null)}
+        />
+      </Screen>
+    )
+  }
+
   return (
     <Screen scroll contentStyle={{ alignItems: 'center', paddingHorizontal: 26 }}>
       <AppText variant="heading" size={16} color={colors.heading} style={{ marginTop: 8 }}>
@@ -202,6 +241,7 @@ export default function RequestUploadScreen() {
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7, justifyContent: 'center', marginTop: 12 }}>
         <Pill label={`${folder.files.length} file${folder.files.length === 1 ? '' : 's'} collected`} />
         <Pill label={formatExpiry(folder.expireAt)} />
+        {isProtected ? <Pill label="Protected" tone="accent" icon={<Icon name="lock" size={10} color={colors.accentText} strokeWidth={2.2} />} /> : null}
       </View>
 
       {incoming ? (

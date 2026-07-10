@@ -1,4 +1,4 @@
-import type { CreateFolderPayload, FolderRecord, MyFolderRecord, RequestFileUpload, UploadRequestRecord } from '@/types/folder'
+import type { CreateFolderPayload, CreateUploadRequestPayload, FolderRecord, MyFolderRecord, RequestFileUpload, UploadRequestRecord } from '@/types/folder'
 import type { FileRecord } from '@/types/file'
 import { apiClient, requireApiData } from './client'
 
@@ -10,15 +10,18 @@ export async function createFolder(payload: CreateFolderPayload): Promise<Folder
   return requireApiData(response, 'Failed to create folder')
 }
 
-export async function createUploadRequest(payload: { folderName?: string; clientId?: string }): Promise<UploadRequestRecord> {
+export async function createUploadRequest(payload: CreateUploadRequestPayload): Promise<UploadRequestRecord> {
+  if (payload.accessType === 'protected' && !payload.password) {
+    throw new Error('A password is required for protected requests')
+  }
   const response = await apiClient<UploadRequestRecord>('/api/folders/request', { method: 'POST', body: payload })
   return requireApiData(response, 'Failed to create upload request')
 }
 
-export async function uploadToRequest(token: string, files: RequestFileUpload[]): Promise<FileRecord[]> {
+export async function uploadToRequest(token: string, files: RequestFileUpload[], password?: string): Promise<FileRecord[]> {
   const response = await apiClient<FileRecord[]>(`/api/folders/token/${token}/files`, {
     method: 'POST',
-    body: { files },
+    body: { files, password },
   })
   return requireApiData(response, 'Failed to upload files')
 }

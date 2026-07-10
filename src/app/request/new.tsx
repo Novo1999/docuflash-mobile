@@ -1,9 +1,10 @@
 import { Icon } from '@/components/Icon'
-import { AppText, Button, Field } from '@/components/ui'
+import { AppText, Button, Field, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { createUploadRequest } from '@/lib/api/folder'
 import { getClientId, getRequestLink } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
+import { FileAccessType } from '@/types/file'
 import * as Clipboard from 'expo-clipboard'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
@@ -15,17 +16,28 @@ export default function RequestNewScreen() {
   const router = useRouter()
 
   const [folderName, setFolderName] = useState('')
+  const [access, setAccess] = useState<FileAccessType>(FileAccessType.PUBLIC)
+  const [password, setPassword] = useState('')
   const [creating, setCreating] = useState(false)
   const [link, setLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
 
   const token = link?.split('/').pop() ?? ''
+  const isProtected = access === FileAccessType.PROTECTED
+  const isMissingPassword = isProtected && password.trim().length === 0
 
   const onGenerate = async () => {
+    if (isMissingPassword) return
+
     setCreating(true)
     try {
       const clientId = await getClientId()
-      const request = await createUploadRequest({ folderName: folderName.trim() || undefined, clientId })
+      const request = await createUploadRequest({
+        folderName: folderName.trim() || undefined,
+        clientId,
+        accessType: access,
+        password: isProtected ? password.trim() : undefined,
+      })
       setLink(getRequestLink(request.shareToken))
     } catch (e) {
       Alert.alert('Could not create link', e instanceof Error ? e.message : 'Please try again.')
@@ -97,7 +109,25 @@ export default function RequestNewScreen() {
             <Field icon="folder" placeholder="e.g. Tax documents 2026" value={folderName} onChangeText={setFolderName} />
           </View>
 
-          <Button title="Generate link" icon="plus" onPress={onGenerate} loading={creating} style={{ marginTop: 20, width: '100%' }} />
+          <View style={{ width: '100%', marginTop: 18, gap: 10 }}>
+            <AppText size={11.5} color={colors.mutedSoft}>
+              Who can access this request?
+            </AppText>
+            <Segmented
+              value={access}
+              onChange={(value) => {
+                setAccess(value)
+                if (value !== FileAccessType.PROTECTED) setPassword('')
+              }}
+              options={[
+                { value: FileAccessType.PUBLIC, label: 'Public' },
+                { value: FileAccessType.PROTECTED, label: 'Protected', icon: 'lock' },
+              ]}
+            />
+            {isProtected ? <Field icon="lock" secure placeholder="Set a password" value={password} onChangeText={setPassword} /> : null}
+          </View>
+
+          <Button title="Generate link" icon="plus" onPress={onGenerate} loading={creating} disabled={isMissingPassword} style={{ marginTop: 20, width: '100%' }} />
         </>
       ) : (
         <>
@@ -162,7 +192,15 @@ export default function RequestNewScreen() {
             <Button title="Open" variant="outline" icon="external" onPress={() => router.push(`/request/${token}`)} style={{ flex: 1 }} size={13} />
           </View>
 
-          <Pressable onPress={() => { setLink(null); setFolderName('') }} style={{ marginTop: 16 }}>
+          <Pressable
+            onPress={() => {
+              setLink(null)
+              setFolderName('')
+              setAccess(FileAccessType.PUBLIC)
+              setPassword('')
+            }}
+            style={{ marginTop: 16 }}
+          >
             <AppText weight="semibold" size={13} color={colors.muted}>
               Create another request
             </AppText>
