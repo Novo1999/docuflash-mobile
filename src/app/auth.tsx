@@ -8,14 +8,16 @@ import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { OAuthProvider } from '@/types/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Alert, View } from 'react-native'
+import { Alert, Pressable, View } from 'react-native'
 
 type Mode = 'signin' | 'signup'
 
 export default function AuthScreen() {
   const { colors } = useTheme()
+  const router = useRouter()
   const { login, loginWithGoogle, loginWithOAuth, register } = useAuth()
   const [googleLoading, setGoogleLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
@@ -186,9 +188,11 @@ export default function AuthScreen() {
 
       {mode === 'signin' ? (
         <View style={{ alignItems: 'flex-end', marginTop: 11 }}>
-          <AppText weight="semibold" size={12} color={colors.accentText}>
-            Forgot password?
-          </AppText>
+          <Pressable onPress={() => router.push('/forgot-password')} hitSlop={8}>
+            <AppText weight="semibold" size={12} color={colors.accentText}>
+              Forgot password?
+            </AppText>
+          </Pressable>
         </View>
       ) : null}
 

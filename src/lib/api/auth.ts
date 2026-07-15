@@ -1,4 +1,4 @@
-import { OAUTH_NATIVE_REDIRECT_URL } from '@/constants/auth'
+import { OAUTH_NATIVE_REDIRECT_URL, RESET_PASSWORD_REDIRECT_URL } from '@/constants/auth'
 import type {
   AuthResult,
   AuthUser,
@@ -8,9 +8,10 @@ import type {
   RefreshResult,
   RegisterPayload,
   RegisterResult,
+  ResetPasswordPayload,
   UpdateProfilePayload,
 } from '@/types/auth'
-import { apiClient, buildApiUrl, requireApiData } from './client'
+import { ApiError, apiClient, buildApiUrl, requireApiData } from './client'
 
 export async function registerUser(payload: RegisterPayload): Promise<RegisterResult> {
   const response = await apiClient<RegisterResult>('/api/auth/register', { method: 'POST', body: payload })
@@ -25,6 +26,21 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResult> {
 export async function loginWithGoogleNative(payload: GoogleNativePayload): Promise<AuthResult> {
   const response = await apiClient<AuthResult>('/api/auth/oauth/google/native', { method: 'POST', body: payload })
   return requireApiData(response, 'Google sign-in failed')
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const response = await apiClient<null>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: { email, redirectTo: RESET_PASSWORD_REDIRECT_URL },
+  })
+  if (!response.success) {
+    throw new ApiError(response.msg || 'Could not send the reset email', response.status)
+  }
+}
+
+export async function resetPassword(payload: ResetPasswordPayload): Promise<AuthResult> {
+  const response = await apiClient<AuthResult>('/api/auth/reset-password', { method: 'POST', body: payload })
+  return requireApiData(response, 'Could not update your password')
 }
 
 export async function refreshAuthSession(refreshToken: string): Promise<RefreshResult> {

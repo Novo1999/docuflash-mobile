@@ -14,10 +14,11 @@ export function RootNavigator() {
   useEffect(() => {
     if (status === 'loading') return
     const root = segments[0] as string
-    const inAuth = root === 'auth'
+    const inAuth = root === 'auth' || root === 'forgot-password'
+    const inReset = root === 'reset-password'
     const inPublic = root === 'share' || root === 'folder' || root === 'request'
 
-    if (status === 'unauthenticated' && !inAuth && !inPublic) {
+    if (status === 'unauthenticated' && !inAuth && !inReset && !inPublic) {
       router.replace('/auth')
     } else if (status === 'authenticated' && inAuth) {
       router.replace('/(tabs)')
@@ -30,6 +31,8 @@ export function RootNavigator() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.screen } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="auth" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="reset-password" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="success" options={{ presentation: 'modal' }} />
         <Stack.Screen name="share/[shareToken]" />

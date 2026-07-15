@@ -4,12 +4,13 @@ import {
   loginWithGoogleNative,
   logoutUser,
   registerUser,
+  resetPassword,
   updateProfile as updateProfileApi,
 } from '@/lib/api/auth'
 import { signInWithGoogle } from '@/lib/googleSignin'
 import { signInWithOAuthProvider } from '@/lib/oauth'
 import { loadSession, persistSession } from '@/lib/session'
-import type { AuthStatus, AuthUser, LoginPayload, OAuthProvider, RegisterPayload, UpdateProfilePayload } from '@/types/auth'
+import type { AuthStatus, AuthUser, LoginPayload, OAuthProvider, RegisterPayload, ResetPasswordPayload, UpdateProfilePayload } from '@/types/auth'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
 type AuthContextValue = {
@@ -19,6 +20,7 @@ type AuthContextValue = {
   loginWithGoogle: () => Promise<{ cancelled: boolean }>
   loginWithOAuth: (provider: OAuthProvider) => Promise<{ cancelled: boolean }>
   register: (payload: RegisterPayload) => Promise<{ needsEmailConfirmation: boolean }>
+  completePasswordReset: (payload: ResetPasswordPayload) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
   updateProfile: (payload: UpdateProfilePayload) => Promise<void>
@@ -97,6 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { needsEmailConfirmation: result.needsEmailConfirmation }
   }
 
+  const completePasswordReset: AuthContextValue['completePasswordReset'] = async (payload) => {
+    const result = await resetPassword(payload)
+    await persistSession(result.session)
+    setUser(result.user)
+    setStatus('authenticated')
+  }
+
   const logout: AuthContextValue['logout'] = async () => {
     try {
       await logoutUser()
@@ -119,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, login, loginWithGoogle, loginWithOAuth, register, logout, refreshUser, updateProfile }),
+    () => ({ user, status, login, loginWithGoogle, loginWithOAuth, register, completePasswordReset, logout, refreshUser, updateProfile }),
     [user, status],
   )
 
