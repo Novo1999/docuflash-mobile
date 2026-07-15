@@ -7,8 +7,9 @@ import {
   updateProfile as updateProfileApi,
 } from '@/lib/api/auth'
 import { signInWithGoogle } from '@/lib/googleSignin'
+import { signInWithOAuthProvider } from '@/lib/oauth'
 import { loadSession, persistSession } from '@/lib/session'
-import type { AuthStatus, AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from '@/types/auth'
+import type { AuthStatus, AuthUser, LoginPayload, OAuthProvider, RegisterPayload, UpdateProfilePayload } from '@/types/auth'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 
 type AuthContextValue = {
@@ -16,6 +17,7 @@ type AuthContextValue = {
   status: AuthStatus
   login: (payload: LoginPayload) => Promise<void>
   loginWithGoogle: () => Promise<{ cancelled: boolean }>
+  loginWithOAuth: (provider: OAuthProvider) => Promise<{ cancelled: boolean }>
   register: (payload: RegisterPayload) => Promise<{ needsEmailConfirmation: boolean }>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
@@ -70,6 +72,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { cancelled: false }
   }
 
+  const loginWithOAuth: AuthContextValue['loginWithOAuth'] = async (provider) => {
+    const session = await signInWithOAuthProvider(provider)
+    if (!session) return { cancelled: true }
+    await persistSession(session)
+    try {
+      const me = await getCurrentUser()
+      setUser(me)
+      setStatus('authenticated')
+    } catch (e) {
+      await persistSession(null)
+      throw e
+    }
+    return { cancelled: false }
+  }
+
   const register: AuthContextValue['register'] = async (payload) => {
     const result = await registerUser(payload)
     if (result.session) {
@@ -102,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, login, loginWithGoogle, register, logout, refreshUser, updateProfile }),
+    () => ({ user, status, login, loginWithGoogle, loginWithOAuth, register, logout, refreshUser, updateProfile }),
     [user, status],
   )
 

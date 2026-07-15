@@ -2,14 +2,12 @@ import { OAuthButton } from '@/components/auth'
 import { Icon } from '@/components/Icon'
 import { AppText, Button, Field, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
-import { getOAuthUrl } from '@/lib/api/auth'
 import { ApiError } from '@/lib/api/client'
 import { authSchema, type AuthFormValues } from '@/lib/validation/auth'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { OAuthProvider } from '@/types/auth'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Alert, View } from 'react-native'
@@ -18,8 +16,9 @@ type Mode = 'signin' | 'signup'
 
 export default function AuthScreen() {
   const { colors } = useTheme()
-  const { login, loginWithGoogle, register } = useAuth()
+  const { login, loginWithGoogle, loginWithOAuth, register } = useAuth()
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null)
   const [mode, setMode] = useState<Mode>('signin')
   const [error, setError] = useState<string | null>(null)
 
@@ -82,10 +81,14 @@ export default function AuthScreen() {
   }
 
   const onOAuth = async (provider: OAuthProvider) => {
+    setError(null)
+    setOauthLoading(provider)
     try {
-      await WebBrowser.openAuthSessionAsync(getOAuthUrl(provider), 'docuflashmobile://auth')
-    } catch {
-      setError('Could not open sign-in. Please try again.')
+      await loginWithOAuth(provider)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Sign-in failed. Please try again.')
+    } finally {
+      setOauthLoading(null)
     }
   }
 
@@ -212,7 +215,7 @@ export default function AuthScreen() {
 
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <OAuthButton label="Google" onPress={onGoogle} loading={googleLoading} />
-        <OAuthButton label="GitHub" icon onPress={() => onOAuth('github')} />
+        <OAuthButton label="GitHub" icon onPress={() => onOAuth('github')} loading={oauthLoading === 'github'} />
       </View>
 
       <AppText size={11} color={colors.mutedSoft} style={{ textAlign: 'center', marginTop: 28, lineHeight: 18 }}>

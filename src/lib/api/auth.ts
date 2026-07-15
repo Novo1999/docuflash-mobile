@@ -1,3 +1,4 @@
+import { OAUTH_NATIVE_REDIRECT_URL } from '@/constants/auth'
 import type {
   AuthResult,
   AuthUser,
@@ -46,5 +47,5 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<Auth
 }
 
 export function getOAuthUrl(provider: OAuthProvider): string {
-  return buildApiUrl(`/api/auth/oauth/${provider}`)
+  return `${buildApiUrl(`/api/auth/oauth/${provider}`)}?redirect=${encodeURIComponent(OAUTH_NATIVE_REDIRECT_URL)}`
 }

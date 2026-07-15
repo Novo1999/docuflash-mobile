@@ -1,18 +1,54 @@
 # Docuflash Mobile
 
-Share files privately, from your phone. Docuflash Mobile is the [Expo](https://expo.dev) React Native client for Docuflash — a service for creating **encrypted, self-expiring share links** for documents. Upload a file, choose who can open it and for how long, and hand out a link that vanishes on your schedule.
+Share files privately, from your phone. Docuflash Mobile is the [Expo](https://expo.dev) React Native client for **Docuflash** — a service for creating **encrypted, self-expiring share links** for documents. Upload a file, choose who can open it and for how long, and hand out a link that vanishes on your schedule.
 
-This app is the native companion to the Docuflash web app and talks to the same backend ([`docuflash-api`](https://docuflash-api.vercel.app)) and [UploadThing](https://uploadthing.com) storage.
+<!-- Optional: add badges, e.g. Play Store link, license, Expo SDK version -->
+
+## Screenshots
+
+| Upload & share | My uploads | Request files (QR) |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/upload.jpeg" width="240" alt="Upload screen" /> | <img src="docs/screenshots/uploads.jpeg" width="240" alt="My uploads screen" /> | <img src="docs/screenshots/request.jpg" width="240" alt="Request files screen with QR code" /> |
+
+| Shared link viewer | Auth | Profile & theming |
+| :---: | :---: | :---: |
+| <img src="docs/screenshots/share-viewer.jpg" width="240" alt="Shared file viewer" /> | <img src="docs/screenshots/auth.jpg" width="240" alt="Sign in screen" /> | <img src="docs/screenshots/profile.jpg" width="240" alt="Profile and appearance settings" /> |
+
+<!-- Optional: 60–90s demo video — upload to YouTube (unlisted) and link it here.
+**[▶ Watch the demo](https://youtu.be/YOUR_VIDEO_ID)**
+-->
 
 ## Features
 
-- **Upload & share** — pick up to 5 files (PDF, DOCX, XLSX, ZIP, TXT; 16 MB each) and generate a share link.
-- **Password protection** — mark a share as `Protected` (requires a password to open) or `Public`.
-- **Auto-expiry** — links self-delete after 1 hour, 24 hours, 7 days, or 30 days.
+- **Upload & share** — pick up to 5 files (PDF, DOCX, XLSX, ZIP, TXT; 16 MB each), optionally group them into a named folder, and generate a share link.
+- **Request files** — generate a link (with QR code) that lets *anyone* send files to you, with public or password-protected access.
+- **Password protection** — mark any share or request as `Protected` (requires a password to open) or `Public`.
+- **Auto-expiry** — links self-delete on schedule, with date/time pickers for custom expiry.
 - **My uploads** — browse, search, copy, open, and delete your files and folders, with download counts and expiry badges.
-- **Shared link viewer** — open a `share/[shareToken]` link to unlock (if protected), preview, and download a file.
+- **Share & folder viewers** — open a `share/…` or `folder/…` link to unlock (if protected), preview, and download.
+- **Deep links** — verified Android App Links / iOS Universal Links: `docuflash-frontend.vercel.app/share|folder|request/…` URLs open directly in the app.
 - **Authentication** — email/password sign-up & login plus native Google Sign-In, with sessions stored in secure storage.
+- **OTA updates** — JS updates ship instantly to installed apps via EAS Update channels (development / preview / production).
 - **Theming** — light / dark / system appearance, custom fonts (DM Sans + Source Serif 4), and a token-based design system.
+
+## Architecture
+
+Docuflash is a three-part system; this repo is the mobile client.
+
+```mermaid
+graph LR
+    A["Docuflash Mobile<br/>(Expo / React Native)"] -->|REST| B["Docuflash API<br/>(backend)"]
+    C["Docuflash Web<br/>(frontend, Vercel)"] -->|REST| B
+    A -->|uploads| D["UploadThing<br/>(file storage)"]
+    B --- D
+    C -.->|"App Links redirect<br/>share / folder / request"| A
+```
+
+| Part | Role |
+| --- | --- |
+| **docuflash-mobile** (this repo) | Native iOS/Android client — uploads, share management, file requests, deep-link viewers |
+| [**Docuflash API**](https://docuflash-api.vercel.app) | REST backend — auth, share tokens, expiry, access control |
+| [**Docuflash Web**](https://docuflash-frontend.vercel.app) | Web frontend — share links resolve here and hand off to the app when installed |
 
 ## Tech stack
 
@@ -23,7 +59,8 @@ This app is the native companion to the Docuflash web app and talks to the same 
 - **UploadThing** (`@uploadthing/expo`) for file uploads
 - **expo-secure-store** for session persistence
 - **@react-native-google-signin/google-signin** for native Google auth
-- **EAS Build** for development, preview, and production builds
+- **react-native-qrcode-svg** for shareable QR codes
+- **EAS Build + EAS Update** for builds and over-the-air JS updates
 
 > ⚠️ Expo SDK 56 introduced breaking changes. Read the versioned docs at <https://docs.expo.dev/versions/v56.0.0/> before contributing.
 
@@ -31,23 +68,26 @@ This app is the native companion to the Docuflash web app and talks to the same 
 
 ```
 src/
-├── app/                      # Expo Router routes (file-based)
-│   ├── _layout.tsx           # Root stack, providers, auth redirect, font loading
-│   ├── index.tsx             # Entry redirect
-│   ├── auth.tsx              # Sign in / sign up
-│   ├── success.tsx           # Post-upload share-link confirmation (modal)
-│   ├── share/[shareToken].tsx# Public shared-file viewer (unlock / preview / download)
-│   └── (tabs)/               # Authenticated tab navigator
-│       ├── index.tsx         # Upload screen
-│       ├── uploads.tsx       # My uploads (files & folders)
-│       └── profile.tsx       # Account, storage, settings, appearance
-├── components/               # Icon + reusable UI primitives (Button, Card, Field, …)
-├── constants/                # API base URL, auth, upload limits & MIME types
-├── hooks/                    # useUploadSubmit, useColorScheme
-├── lib/                      # API client, auth/files/folder endpoints, upload, session, validation
-├── state/                    # AuthProvider (auth context)
-├── theme/                    # ThemeProvider + design tokens
-└── types/                    # Shared TypeScript types (auth, file, folder)
+├── app/                       # Expo Router routes (file-based)
+│   ├── _layout.tsx            # Root stack, providers, auth redirect, font loading
+│   ├── index.tsx              # Entry redirect
+│   ├── auth.tsx               # Sign in / sign up
+│   ├── success.tsx            # Post-upload share-link confirmation (modal)
+│   ├── share/[shareToken].tsx # Public shared-file viewer (unlock / preview / download)
+│   ├── folder/[shareToken].tsx# Shared-folder viewer
+│   ├── request/new.tsx        # Create a file request (link + QR, public/protected)
+│   ├── request/[shareToken].tsx # Fulfil a file request (upload to someone's folder)
+│   └── (tabs)/                # Authenticated tab navigator
+│       ├── index.tsx          # Upload screen
+│       ├── uploads.tsx        # My uploads (files & folders)
+│       └── profile.tsx        # Account, storage, settings, appearance
+├── components/                # Icon + reusable UI primitives (Button, Card, Field, …)
+├── constants/                 # API base URL, auth, upload limits & MIME types
+├── hooks/                     # useUploadSubmit, useColorScheme
+├── lib/                       # API client, auth/files/folder endpoints, upload, session, validation
+├── state/                     # AuthProvider (auth context)
+├── theme/                     # ThemeProvider + design tokens
+└── types/                     # Shared TypeScript types (auth, file, folder)
 ```
 
 ## Getting started
@@ -99,10 +139,11 @@ npm run web        # run in the browser
 | `npm run build:development:*` | EAS development build (Android / iOS) |
 | `npm run build:preview` | EAS preview build (all platforms) |
 | `npm run build` | EAS production build (all platforms) |
+| `npm run update:production -- "msg"` | Ship an OTA JS update to the production channel |
 
-## Building
+## Building & releasing
 
-Builds are configured in `eas.json` with `development`, `preview`, and `production` profiles. Development and preview build internal-distribution APKs; production auto-increments the version. See the [EAS Build docs](https://docs.expo.dev/build/introduction/).
+Builds are configured in `eas.json` with `development`, `preview`, and `production` profiles. Development and preview build internal-distribution APKs; production builds an AAB with auto-incremented versions and ships through EAS Submit / the Play Console. JS-only changes go out over the air with EAS Update on the matching channel. See the [EAS Build docs](https://docs.expo.dev/build/introduction/).
 
 ## License
 
