@@ -1,3 +1,6 @@
+export { DragGhost } from './DragGhost'
+export { DraggableFileCard } from './DraggableFileCard'
+export { DroppableFolderCard } from './DroppableFolderCard'
 export { EmptyState } from './EmptyState'
 export { FileCard } from './FileCard'
 export { FolderCard } from './FolderCard'

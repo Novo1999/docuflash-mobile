@@ -1,9 +1,10 @@
 import { Icon } from '@/components/Icon'
 import { AppText, ConfirmModal } from '@/components/ui'
-import { EmptyState, FileCard, FolderCard } from '@/components/uploads'
+import { DragGhost, DraggableFileCard, DroppableFolderCard, EmptyState, FileCard, FolderCard } from '@/components/uploads'
 import { useDebouncedEffect } from '@/hooks/useDebouncedEffect'
+import { useFileDrag } from '@/hooks/useFileDrag'
 import { deleteFileByShareToken, getMyFiles } from '@/lib/api/files'
-import { deleteFolderByShareToken, getMyFolders } from '@/lib/api/folder'
+import { deleteFolderByShareToken, getMyFolders, moveFileToFolder } from '@/lib/api/folder'
 import { getFolderShareLink, getShareLink } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { MyFileRecord } from '@/types/file'
@@ -24,6 +25,7 @@ export default function UploadsScreen() {
   const [query, setQuery] = useState('')
   const [pendingDelete, setPendingDelete] = useState<{ type: 'file' | 'folder'; token: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [foldersVersion, setFoldersVersion] = useState(0)
 
   const load = useCallback(async (search?: string) => {
     try {
@@ -56,6 +58,28 @@ export default function UploadsScreen() {
 
   const standalone = useMemo(() => files.filter((f) => (f.folders?.length ?? 0) === 0), [files])
   const rows = useMemo<(MyFolderRecord | MyFileRecord)[]>(() => [...folders, ...standalone], [folders, standalone])
+
+  const moveFile = useCallback(
+    async (file: MyFileRecord, folderId: string) => {
+      const folder = folders.find((f) => f.id === folderId)
+      if (!folder || file.folders.some((ref) => ref.id === folderId)) return
+
+      setFiles((current) =>
+        current.map((item) => (item.id === file.id ? { ...item, folders: [{ id: folder.id, folderName: folder.folderName }] } : item)),
+      )
+      try {
+        await moveFileToFolder(folderId, file.id)
+        setFoldersVersion((version) => version + 1)
+      } catch {
+        Alert.alert('Move failed', 'Something went wrong. Please try again.')
+      } finally {
+        load(query)
+      }
+    },
+    [folders, load, query],
+  )
+
+  const drag = useFileDrag(moveFile)
 
   const copy = async (text: string) => {
     await Clipboard.setStringAsync(text)
@@ -139,21 +163,33 @@ export default function UploadsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.screen }} edges={['top']}>
       <FlatList
         data={rows}
-        keyExtractor={(item) => ('folderName' in item ? 'folder-' : 'file-') + item.id}
+        keyExtractor={(item) => ('folderName' in item ? `folder-${item.id}-${foldersVersion}` : 'file-' + item.id)}
+        scrollEnabled={drag.draggingFile === null}
         renderItem={({ item }) =>
           'folderName' in item ? (
-            <FolderCard
-              folder={item}
-              onCopy={() => copy(getFolderShareLink(item.shareToken))}
-              onDelete={() => confirmDeleteFolder(item.shareToken)}
-            />
+            <DroppableFolderCard folderId={item.id} hoveredFolderId={drag.hoveredFolderId} registerFolder={drag.registerFolder}>
+              <FolderCard
+                folder={item}
+                onCopy={() => copy(getFolderShareLink(item.shareToken))}
+                onDelete={() => confirmDeleteFolder(item.shareToken)}
+              />
+            </DroppableFolderCard>
           ) : (
-            <FileCard
-              file={item}
-              onCopy={() => copy(getShareLink(item.shareToken))}
-              onOpen={() => router.push(`/share/${item.shareToken}`)}
-              onDelete={() => confirmDeleteFile(item.shareToken)}
-            />
+            <DraggableFileCard
+              dragX={drag.dragX}
+              dragY={drag.dragY}
+              hoveredFolderId={drag.hoveredFolderId}
+              folderFrames={drag.folderFrames}
+              onBegin={() => drag.beginDrag(item)}
+              onEnd={(folderId) => drag.endDrag(item, folderId)}
+            >
+              <FileCard
+                file={item}
+                onCopy={() => copy(getShareLink(item.shareToken))}
+                onOpen={() => router.push(`/share/${item.shareToken}`)}
+                onDelete={() => confirmDeleteFile(item.shareToken)}
+              />
+            </DraggableFileCard>
           )
         }
         ListHeaderComponent={listHeader}
@@ -174,6 +210,8 @@ export default function UploadsScreen() {
           />
         }
       />
+
+      {drag.draggingFile ? <DragGhost file={drag.draggingFile} dragX={drag.dragX} dragY={drag.dragY} /> : null}
 
       <ConfirmModal
         visible={pendingDelete !== null}

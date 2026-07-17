@@ -45,6 +45,11 @@ export async function unlockFolderByShareToken(token: string, password: string):
   return requireApiData(response, 'Invalid password')
 }
 
+export async function moveFileToFolder(folderId: string, fileId: string): Promise<FolderRecord> {
+  const response = await apiClient<FolderRecord>(`/api/folders/${folderId}/files`, { method: 'POST', body: { fileId } })
+  return requireApiData(response, 'Failed to move file')
+}
+
 export async function deleteFolderById(id: string): Promise<void> {
   const response = await apiClient<null>(`/api/folders/${id}`, { method: 'DELETE' })
   requireApiData(response, 'Failed to delete folder')
