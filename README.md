@@ -8,7 +8,7 @@ Share files privately, from your phone. Docuflash Mobile is the [Expo](https://e
 
 | Upload & share | My uploads | Request files (QR) |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/upload.jpeg" width="240" alt="Upload screen" /> | <img src="docs/screenshots/uploads.jpeg" width="240" alt="My uploads screen" /> | <img src="docs/screenshots/request.jpg" width="240" alt="Request files screen with QR code" /> |
+| <img src="docs/screenshots/upload.jpeg" width="240" alt="Upload screen" /> | <img src="docs/screenshots/uploads.jpg" width="240" alt="My uploads screen" /> | <img src="docs/screenshots/request.jpg" width="240" alt="Request files screen with QR code" /> |
 
 | Shared link viewer | Auth | Profile & theming |
 | :---: | :---: | :---: |
