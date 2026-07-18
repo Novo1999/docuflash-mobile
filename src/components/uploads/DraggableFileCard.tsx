@@ -8,12 +8,13 @@ type DraggableFileCardProps = {
   dragY: SharedValue<number>
   hoveredFolderId: SharedValue<string | null>
   folderFrames: SharedValue<FolderFrame[]>
+  excludeFolderId?: string
   onBegin: () => void
   onEnd: (folderId: string | null) => void
   children: ReactNode
 }
 
-export function DraggableFileCard({ dragX, dragY, hoveredFolderId, folderFrames, onBegin, onEnd, children }: DraggableFileCardProps) {
+export function DraggableFileCard({ dragX, dragY, hoveredFolderId, folderFrames, excludeFolderId, onBegin, onEnd, children }: DraggableFileCardProps) {
   const active = useSharedValue(false)
 
   const pan = Gesture.Pan()
@@ -29,6 +30,7 @@ export function DraggableFileCard({ dragX, dragY, hoveredFolderId, folderFrames,
       dragY.set(event.absoluteY)
       let hovered: string | null = null
       for (const frame of folderFrames.get()) {
+        if (frame.id === excludeFolderId) continue
         if (
           event.absoluteX >= frame.x &&
           event.absoluteX <= frame.x + frame.width &&

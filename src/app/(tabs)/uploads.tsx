@@ -170,6 +170,7 @@ export default function UploadsScreen() {
             <DroppableFolderCard folderId={item.id} hoveredFolderId={drag.hoveredFolderId} registerFolder={drag.registerFolder}>
               <FolderCard
                 folder={item}
+                drag={drag}
                 onCopy={() => copy(getFolderShareLink(item.shareToken))}
                 onDelete={() => confirmDeleteFolder(item.shareToken)}
               />

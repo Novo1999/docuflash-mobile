@@ -5,6 +5,8 @@ import { useSharedValue } from 'react-native-reanimated'
 
 export type FolderFrame = { id: string; x: number; y: number; width: number; height: number }
 
+export type FileDragController = ReturnType<typeof useFileDrag>
+
 export function useFileDrag(onDrop: (file: MyFileRecord, folderId: string) => void) {
   const [draggingFile, setDraggingFile] = useState<MyFileRecord | null>(null)
   const dragX = useSharedValue(0)

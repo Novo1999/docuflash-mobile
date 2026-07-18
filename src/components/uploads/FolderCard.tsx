@@ -1,21 +1,31 @@
 import { Icon } from '@/components/Icon'
 import { AppText, Card, FileTypeBadge, IconButton } from '@/components/ui'
+import type { FileDragController } from '@/hooks/useFileDrag'
 import { getFolderByShareToken } from '@/lib/api/folder'
 import { formatExpiry, formatFileSize } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
-import { FileAccessType, type FileRecord } from '@/types/file'
+import { FileAccessType, type FileRecord, type MyFileRecord } from '@/types/file'
 import type { MyFolderRecord } from '@/types/folder'
 import { useRouter } from 'expo-router'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
+import { DraggableFileCard } from './DraggableFileCard'
 
 type FolderCardProps = {
   folder: MyFolderRecord
   onCopy: () => void
   onDelete: () => void
+  drag?: FileDragController
 }
 
-export function FolderCard({ folder, onCopy, onDelete }: FolderCardProps) {
+const toDraggableFile = (file: FileRecord, folder: MyFolderRecord): MyFileRecord => ({
+  ...file,
+  ownerId: folder.ownerId,
+  createdAt: file.uploadDate,
+  folders: [{ id: folder.id, folderName: folder.folderName }],
+})
+
+export function FolderCard({ folder, onCopy, onDelete, drag }: FolderCardProps) {
   const { colors } = useTheme()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -78,24 +88,41 @@ export function FolderCard({ folder, onCopy, onDelete }: FolderCardProps) {
           {loadingChildren ? (
             <ActivityIndicator color={colors.accent} />
           ) : children && children.length > 0 ? (
-            children.map((file) => (
-              <Pressable
-                key={file.id}
-                onPress={() => router.push(`/share/${file.shareToken}`)}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}
-              >
-                <FileTypeBadge type={file.fileType} size={32} radius={9} />
-                <View style={{ flex: 1 }}>
-                  <AppText weight="medium" size={12.5} numberOfLines={1}>
-                    {file.fileName}
-                  </AppText>
-                  <AppText size={10.5} color={colors.mutedSoft}>
-                    {formatFileSize(file.fileSize)} · {file.downloadCount} downloads
-                  </AppText>
-                </View>
-                <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} />
-              </Pressable>
-            ))
+            children.map((file) => {
+              const row = (
+                <Pressable
+                  onPress={() => router.push(`/share/${file.shareToken}`)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}
+                >
+                  <FileTypeBadge type={file.fileType} size={32} radius={9} />
+                  <View style={{ flex: 1 }}>
+                    <AppText weight="medium" size={12.5} numberOfLines={1}>
+                      {file.fileName}
+                    </AppText>
+                    <AppText size={10.5} color={colors.mutedSoft}>
+                      {formatFileSize(file.fileSize)} · {file.downloadCount} downloads
+                    </AppText>
+                  </View>
+                  <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} />
+                </Pressable>
+              )
+              if (!drag) return <Fragment key={file.id}>{row}</Fragment>
+              const draggableFile = toDraggableFile(file, folder)
+              return (
+                <DraggableFileCard
+                  key={file.id}
+                  dragX={drag.dragX}
+                  dragY={drag.dragY}
+                  hoveredFolderId={drag.hoveredFolderId}
+                  folderFrames={drag.folderFrames}
+                  excludeFolderId={folder.id}
+                  onBegin={() => drag.beginDrag(draggableFile)}
+                  onEnd={(folderId) => drag.endDrag(draggableFile, folderId)}
+                >
+                  {row}
+                </DraggableFileCard>
+              )
+            })
           ) : (
             <AppText size={11.5} color={colors.mutedSoft}>
               No files in this folder.
