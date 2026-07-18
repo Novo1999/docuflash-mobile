@@ -15,7 +15,13 @@
       "bundleIdentifier": "com.novodip.docuflashmobile",
       "buildNumber": "1",
       "icon": "./assets/images/icon.png",
-      "associatedDomains": ["applinks:docuflash-frontend.vercel.app"]
+      "associatedDomains": [
+        "applinks:docuflash-frontend.vercel.app",
+        "applinks:docuflash-frontend.vercel.app"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +35,10 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "category": ["BROWSABLE", "DEFAULT"],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
           "data": [
             {
               "scheme": "https",
@@ -48,6 +57,9 @@
             }
           ]
         }
+      ],
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
