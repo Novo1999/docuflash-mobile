@@ -1,3 +1,4 @@
+import { UpdateBanner } from '@/components/updates'
 import { UploadProgressBar } from '@/components/ui/UploadProgressBar'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -41,6 +42,7 @@ export function RootNavigator() {
         <Stack.Screen name="request/[shareToken]" />
       </Stack>
       <UploadProgressBar />
+      <UpdateBanner />
     </>
   )
 }
