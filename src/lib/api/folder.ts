@@ -12,10 +12,10 @@ export async function createFolder(payload: CreateFolderPayload): Promise<Folder
 
 export async function createUploadRequest(payload: CreateUploadRequestPayload): Promise<UploadRequestRecord> {
   if (payload.accessType === 'protected' && !payload.password) {
-    throw new Error('A password is required for protected requests')
+    throw new Error('A password is required for protected links')
   }
   const response = await apiClient<UploadRequestRecord>('/api/folders/request', { method: 'POST', body: payload })
-  return requireApiData(response, 'Failed to create upload request')
+  return requireApiData(response, 'Failed to create upload link')
 }
 
 export async function uploadToRequest(token: string, files: RequestFileUpload[], password?: string): Promise<FileRecord[]> {
@@ -29,7 +29,7 @@ export async function uploadToRequest(token: string, files: RequestFileUpload[],
 export async function getActiveRequests(clientId: string): Promise<ActiveRequestRecord[]> {
   const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : ''
   const response = await apiClient<ActiveRequestRecord[]>(`/api/folders/requests${query}`)
-  return requireApiData(response, 'Failed to load your active requests')
+  return requireApiData(response, 'Failed to load your active links')
 }
 
 export async function getMyFolders(search?: string): Promise<MyFolderRecord[]> {

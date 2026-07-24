@@ -183,10 +183,10 @@ export default function UploadScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <AppText weight="semibold" size={13} color={colors.text}>
-            Request files
+            Upload to me
           </AppText>
           <AppText size={11} color={colors.mutedSoft} style={{ marginTop: 2 }}>
-            Get an upload link others can send files to
+            Get a link others can send files to
           </AppText>
         </View>
         <Icon name="chevron-right" size={18} color={colors.mutedSoft} strokeWidth={2} />

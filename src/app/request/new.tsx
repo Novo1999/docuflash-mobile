@@ -122,7 +122,7 @@ export default function RequestNewScreen() {
           <Icon name="chevron-left" size={17} color={colors.text} strokeWidth={1.8} />
         </Pressable>
         <AppText weight="semibold" size={14}>
-          Request files
+          Upload to me
         </AppText>
         <View style={{ width: 34 }} />
       </View>
@@ -131,7 +131,7 @@ export default function RequestNewScreen() {
         <View style={{ width: '100%', marginTop: 20, gap: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <AppText weight="semibold" size={13} color={colors.heading}>
-              Ongoing requests
+              Ongoing links
             </AppText>
             <AppText size={11.5} color={colors.mutedSoft}>
               {activeRequests.length} of 2 active
@@ -168,13 +168,13 @@ export default function RequestNewScreen() {
             Get files from anyone
           </AppText>
           <AppText size={13} color={colors.muted} lineHeight={20} style={{ marginTop: 8, textAlign: 'center' }}>
-            Generate an &quot;upload to me&quot; link and share it. Anyone can send you files — no account needed. Files auto-delete 2 hours after upload.
+            Generate a link and share it. Anyone can send you files — no account needed. Files auto-delete 2 hours after upload.
           </AppText>
 
           {bothTaken ? (
             <View style={{ width: '100%', marginTop: 22, padding: 14, borderRadius: radii.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
               <AppText size={12.5} color={colors.muted} lineHeight={19} style={{ textAlign: 'center' }}>
-                You&apos;ve reached the maximum of 2 active requests — one public and one protected. Resume or end a session above to create a new one.
+                You&apos;ve reached the maximum of 2 active links — one public and one protected. Resume or end one above to create a new one.
               </AppText>
             </View>
           ) : (
@@ -188,7 +188,7 @@ export default function RequestNewScreen() {
 
               <View style={{ width: '100%', marginTop: 18, gap: 10 }}>
                 <AppText size={11.5} color={colors.mutedSoft}>
-                  Who can access this request?
+                  Who can access this link?
                 </AppText>
                 <Segmented
                   value={effectiveAccess}
@@ -279,7 +279,7 @@ export default function RequestNewScreen() {
             style={{ marginTop: 16 }}
           >
             <AppText weight="semibold" size={13} color={colors.muted}>
-              Create another request
+              Create another link
             </AppText>
           </Pressable>
         </>
@@ -296,8 +296,8 @@ export default function RequestNewScreen() {
         visible={pendingEnd !== null}
         icon="trash"
         tone="danger"
-        title="End this request?"
-        message="This removes the request and any files collected so far. This can't be undone."
+        title="End this link?"
+        message="This removes the link and any files collected so far. This can't be undone."
         confirmLabel="End session"
         loading={ending}
         onConfirm={onEndSession}

@@ -199,7 +199,7 @@ export default function RequestUploadScreen() {
           Link unavailable
         </AppText>
         <AppText size={13} color={colors.muted} style={{ textAlign: 'center' }}>
-          This request may have expired, or it isn&apos;t accepting uploads.
+          This link may have expired, or it isn&apos;t accepting uploads.
         </AppText>
       </Screen>
     )
