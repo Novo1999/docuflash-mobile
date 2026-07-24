@@ -35,6 +35,16 @@ export type UploadRequestRecord = {
   expireAt: string
 }
 
+export type ActiveRequestRecord = {
+  shareToken: string
+  folderName: string
+  accessType: FileAccessType
+  acceptsUploads: boolean
+  expireAt: string
+  createdAt: string
+  fileCount: number
+}
+
 export type RequestFileUpload = {
   fileName: string
   fileType: FileType

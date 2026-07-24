@@ -1,4 +1,4 @@
-import type { CreateFolderPayload, CreateUploadRequestPayload, FolderRecord, MyFolderRecord, RequestFileUpload, UploadRequestRecord } from '@/types/folder'
+import type { ActiveRequestRecord, CreateFolderPayload, CreateUploadRequestPayload, FolderRecord, MyFolderRecord, RequestFileUpload, UploadRequestRecord } from '@/types/folder'
 import type { FileRecord } from '@/types/file'
 import { apiClient, requireApiData } from './client'
 
@@ -24,6 +24,12 @@ export async function uploadToRequest(token: string, files: RequestFileUpload[],
     body: { files, password },
   })
   return requireApiData(response, 'Failed to upload files')
+}
+
+export async function getActiveRequests(clientId: string): Promise<ActiveRequestRecord[]> {
+  const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : ''
+  const response = await apiClient<ActiveRequestRecord[]>(`/api/folders/requests${query}`)
+  return requireApiData(response, 'Failed to load your active requests')
 }
 
 export async function getMyFolders(search?: string): Promise<MyFolderRecord[]> {
