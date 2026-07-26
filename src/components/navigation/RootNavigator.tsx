@@ -1,3 +1,4 @@
+import { IncomingTransferPrompt, NearbyController, NearbyToast } from '@/components/nearby'
 import { UpdateBanner } from '@/components/updates'
 import { UploadProgressBar } from '@/components/ui/UploadProgressBar'
 import { useAuth } from '@/state/AuthProvider'
@@ -43,6 +44,9 @@ export function RootNavigator() {
       </Stack>
       <UploadProgressBar />
       <UpdateBanner />
+      <NearbyController />
+      <NearbyToast />
+      <IncomingTransferPrompt />
     </>
   )
 }

@@ -32,6 +32,7 @@ export type IconName =
   | 'flame'
   | 'note'
   | 'edit'
+  | 'wifi'
 
 type MaterialName = ComponentProps<typeof MaterialCommunityIcons>['name']
 
@@ -67,6 +68,7 @@ const GLYPHS: Record<IconName, MaterialName> = {
   flame: 'fire',
   note: 'note-text-outline',
   edit: 'pencil-outline',
+  wifi: 'wifi',
 }
 
 type IconProps = {

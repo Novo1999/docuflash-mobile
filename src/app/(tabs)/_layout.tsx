@@ -36,6 +36,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" options={{ tabBarIcon: ({ focused }) => <TabIcon name="upload" label="Upload" focused={focused} /> }} />
       <Tabs.Screen name="uploads" options={{ tabBarIcon: ({ focused }) => <TabIcon name="folder" label="My uploads" focused={focused} /> }} />
+      <Tabs.Screen name="nearby" options={{ tabBarIcon: ({ focused }) => <TabIcon name="wifi" label="Nearby" focused={focused} /> }} />
       <Tabs.Screen name="notes" options={{ tabBarIcon: ({ focused }) => <TabIcon name="note" label="Notes" focused={focused} /> }} />
       <Tabs.Screen name="profile" options={{ tabBarIcon: ({ focused }) => <TabIcon name="settings" label="Profile" focused={focused} /> }} />
     </Tabs>
