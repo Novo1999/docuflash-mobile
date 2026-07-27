@@ -1,4 +1,6 @@
-import type { TransferSignal } from '@/types/nearby'
+import { getDeviceInfo } from '@/lib/upload'
+import type { AuthUser } from '@/types/auth'
+import type { NearbyDevice, TransferSignal } from '@/types/nearby'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
@@ -6,6 +8,17 @@ const DISCOVERABLE_STORAGE_KEY = 'docuflash_nearby_discoverable'
 
 export function channelNameForNetwork(networkKey: string): string {
   return `network:${networkKey}`
+}
+
+export function buildSelfDevice(user: AuthUser): NearbyDevice {
+  return {
+    id: user.id,
+    displayName: user.displayName ?? user.email,
+    avatarUrl: user.avatarUrl,
+    platform: 'mobile',
+    deviceName: String(getDeviceInfo().model ?? 'Mobile device'),
+    at: Date.now(),
+  }
 }
 
 export async function loadDiscoverable(): Promise<boolean> {

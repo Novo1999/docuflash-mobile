@@ -1,7 +1,6 @@
 import { getNetworkKey } from '@/lib/api/network'
-import { channelNameForNetwork, setActiveNearbyChannel } from '@/lib/nearby'
+import { buildSelfDevice, channelNameForNetwork, setActiveNearbyChannel } from '@/lib/nearby'
 import { getSupabaseClient } from '@/lib/supabase'
-import { getDeviceInfo } from '@/lib/upload'
 import { incomingTransferAtom, isDiscoverableAtom, nearbyDevicesAtom, nearbyToastAtom } from '@/state/nearbyAtoms'
 import { useAuth } from '@/state/AuthProvider'
 import type { NearbyDevice, TransferSignal } from '@/types/nearby'
@@ -33,14 +32,7 @@ export function useNearbyPresence() {
     let cancelled = false
     let channel: RealtimeChannel | null = null
 
-    const self: NearbyDevice = {
-      id: user.id,
-      displayName: user.displayName ?? user.email,
-      avatarUrl: user.avatarUrl,
-      platform: 'mobile',
-      deviceName: String(getDeviceInfo().model ?? 'Mobile device'),
-      at: Date.now(),
-    }
+    const self = buildSelfDevice(user)
 
     void (async () => {
       let networkKey: string

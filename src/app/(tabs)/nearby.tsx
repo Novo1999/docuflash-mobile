@@ -2,8 +2,8 @@ import { DiscoverableToggle, NearbyDeviceCard, NearbyEmptyState } from '@/compon
 import { AppText } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { createUploadRequest } from '@/lib/api/folder'
-import { sendTransferSignal } from '@/lib/nearby'
-import { getClientId, getDeviceInfo } from '@/lib/upload'
+import { buildSelfDevice, sendTransferSignal } from '@/lib/nearby'
+import { getClientId } from '@/lib/upload'
 import { isDiscoverableAtom, nearbyDevicesAtom } from '@/state/nearbyAtoms'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -30,15 +30,7 @@ export default function NearbyScreen() {
         folderName: `Files for ${user.displayName ?? user.email}`,
         clientId,
       })
-      const self: NearbyDevice = {
-        id: user.id,
-        displayName: user.displayName ?? user.email,
-        avatarUrl: user.avatarUrl,
-        platform: 'mobile',
-        deviceName: String(getDeviceInfo().model ?? 'Mobile device'),
-        at: Date.now(),
-      }
-      sendTransferSignal({ kind: 'request', from: self, to: device.id, token: request.shareToken })
+      sendTransferSignal({ kind: 'request', from: buildSelfDevice(user), to: device.id, token: request.shareToken })
       router.push(`/request/${request.shareToken}`)
     } catch (error) {
       Alert.alert('Request failed', error instanceof Error ? error.message : 'Could not send your request. Please try again.')
