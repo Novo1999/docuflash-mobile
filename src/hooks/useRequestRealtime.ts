@@ -1,3 +1,4 @@
+import { logApiEvent } from '@/lib/logger'
 import { getSupabaseClient } from '@/lib/supabase'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useEffect, useRef } from 'react'
