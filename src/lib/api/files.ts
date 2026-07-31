@@ -1,11 +1,5 @@
-import type {
-  FileAccessTokenResponse,
-  FileDownloadResponse,
-  FilePreviewResponse,
-  FileRecord,
-  MyFileRecord,
-  UploadFilePayload,
-} from '@/types/file'
+import { logApiError, logApiRequest, logApiResponse } from '@/lib/logger'
+import type { FileAccessTokenResponse, FileDownloadResponse, FilePreviewResponse, FileRecord, MyFileRecord, UploadFilePayload } from '@/types/file'
 import { ApiError, apiClient, buildApiUrl, requireApiData } from './client'
 
 const buildAccessBody = (accessToken?: string) => (accessToken ? { accessToken } : {})
@@ -56,11 +50,23 @@ export async function getFileDownloadUrl(token: string, accessToken?: string): P
 }
 
 export async function deleteUploadedStorageFile(storageKey: string): Promise<void> {
-  const response = await fetch(buildApiUrl('/api/uploadthing'), {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ storageKey }),
-  })
+  const url = buildApiUrl('/api/uploadthing')
+  const startedAt = Date.now()
+  logApiRequest('REST', 'DELETE', url, { storageKey })
+
+  let response: Response
+  try {
+    response = await fetch(url, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ storageKey }),
+    })
+  } catch (error) {
+    logApiError('REST', 'DELETE', url, error, Date.now() - startedAt)
+    throw error
+  }
+
+  logApiResponse('REST', 'DELETE', url, response.status, Date.now() - startedAt)
 
   if (!response.ok) {
     let message = 'Failed to delete uploaded storage file'

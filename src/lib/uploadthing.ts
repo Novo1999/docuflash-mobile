@@ -1,10 +1,28 @@
 import { BASE_URL } from '@/constants/api'
+import { logApiError, logApiRequest, logApiResponse } from '@/lib/logger'
 import { generateReactNativeHelpers } from '@uploadthing/expo'
 
+const UPLOADTHING_URL = `${BASE_URL.replace(/\/$/, '')}/api/uploadthing`
+
 // Points at the backend's UploadThing endpoint (same host as the REST API).
-export const { useUploadThing, uploadFiles, useDocumentUploader } = generateReactNativeHelpers({
-  url: `${BASE_URL.replace(/\/$/, '')}/api/uploadthing`,
+export const { useUploadThing, uploadFiles: rawUploadFiles, useDocumentUploader } = generateReactNativeHelpers({
+  url: UPLOADTHING_URL,
 })
+
+// Logged wrapper so every UploadThing transfer shows up alongside REST calls.
+export const uploadFiles: typeof rawUploadFiles = (async (endpoint: any, opts: any) => {
+  const startedAt = Date.now()
+  const fileCount = Array.isArray(opts?.files) ? opts.files.length : undefined
+  logApiRequest('UPLOAD', 'POST', `${UPLOADTHING_URL}#${String(endpoint)}`, { files: fileCount })
+  try {
+    const result = await rawUploadFiles(endpoint, opts)
+    logApiResponse('UPLOAD', 'POST', `${UPLOADTHING_URL}#${String(endpoint)}`, 'OK', Date.now() - startedAt)
+    return result
+  } catch (error) {
+    logApiError('UPLOAD', 'POST', `${UPLOADTHING_URL}#${String(endpoint)}`, error, Date.now() - startedAt)
+    throw error
+  }
+}) as typeof rawUploadFiles
 
 export type RNUploadFile = File & { uri: string }
 

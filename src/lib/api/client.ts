@@ -1,4 +1,5 @@
 import { BASE_URL } from '@/constants/api'
+import { logApiError, logApiRequest, logApiResponse } from '@/lib/logger'
 import { getAccessToken } from '@/lib/session'
 
 export type ApiResponse<T> = {
@@ -36,19 +37,30 @@ export function buildApiUrl(endpoint: string): string {
 export async function apiClient<T>(endpoint: string, options: FetchOptions = {}): Promise<ApiResponse<T>> {
   const { body, headers, ...rest } = options
   const accessToken = getAccessToken()
+  const method = (rest.method ?? 'GET').toUpperCase()
+  const url = buildApiUrl(endpoint)
+  const startedAt = Date.now()
 
-  const response = await fetch(buildApiUrl(endpoint), {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  })
+  logApiRequest('REST', method, url, body)
 
-  const json: ApiResponse<T> = await response.json()
-  return json
+  try {
+    const response = await fetch(url, {
+      ...rest,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...headers,
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    })
+
+    const json: ApiResponse<T> = await response.json()
+    logApiResponse('REST', method, url, response.status, Date.now() - startedAt)
+    return json
+  } catch (error) {
+    logApiError('REST', method, url, error, Date.now() - startedAt)
+    throw error
+  }
 }
 
 export const requireApiData = <T>(response: ApiResponse<T>, fallbackMessage: string): T => {

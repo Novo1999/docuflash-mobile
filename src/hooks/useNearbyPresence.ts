@@ -1,4 +1,5 @@
 import { getNetworkKey } from '@/lib/api/network'
+import { logApiEvent } from '@/lib/logger'
 import { buildSelfDevice, channelNameForNetwork, setActiveNearbyChannel } from '@/lib/nearby'
 import { getSupabaseClient } from '@/lib/supabase'
 import { incomingTransferAtom, isDiscoverableAtom, nearbyDevicesAtom, nearbyToastAtom } from '@/state/nearbyAtoms'
@@ -44,10 +45,13 @@ export function useNearbyPresence() {
       if (cancelled) return
 
       const supabase = getSupabaseClient()
-      const nextChannel = supabase.channel(channelNameForNetwork(networkKey), {
+      const channelName = channelNameForNetwork(networkKey)
+      const nextChannel = supabase.channel(channelName, {
         config: { presence: { key: user.id }, broadcast: { self: false } },
       })
       channel = nextChannel
+
+      logApiEvent('REALTIME', channelName, 'subscribe')
 
       nextChannel
         .on('presence', { event: 'sync' }, () => {
@@ -58,6 +62,7 @@ export function useNearbyPresence() {
             const meta = state[key]?.[0]
             if (meta) devices.push(meta)
           }
+          logApiEvent('REALTIME', channelName, 'presence sync', { devices: devices.length })
           const appeared = devices.some((device) => !knownIdsRef.current.has(device.id))
           knownIdsRef.current = new Set(devices.map((device) => device.id))
           setDevices(devices)
@@ -66,11 +71,13 @@ export function useNearbyPresence() {
           }
         })
         .on('broadcast', { event: 'transfer' }, ({ payload }) => {
+          logApiEvent('REALTIME', channelName, 'recv transfer', payload)
           const signal = payload as TransferSignal
           if (signal.to !== user.id || signal.kind !== 'request') return
           setIncoming({ from: signal.from, token: signal.token })
         })
         .subscribe((subStatus) => {
+          logApiEvent('REALTIME', channelName, `status ${subStatus}`)
           if (subStatus === 'SUBSCRIBED') void nextChannel.track(self)
         })
 
@@ -82,7 +89,10 @@ export function useNearbyPresence() {
       knownIdsRef.current = new Set()
       setDevices([])
       setActiveNearbyChannel(null)
-      if (channel) void getSupabaseClient().removeChannel(channel)
+      if (channel) {
+        logApiEvent('REALTIME', channel.topic, 'unsubscribe')
+        void getSupabaseClient().removeChannel(channel)
+      }
     }
   }, [active, user, setDevices, setToast, setIncoming])
 }
