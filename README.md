@@ -4,6 +4,12 @@ Share files privately, from your phone. Docuflash Mobile is the [Expo](https://e
 
 <!-- Optional: add badges, e.g. Play Store link, license, Expo SDK version -->
 
+## 🎥 Demo
+
+[![Docuflash Mobile Demo](https://img.youtube.com/vi/Ga8PkVGl4zY/maxresdefault.jpg)](https://www.youtube.com/watch?v=Ga8PkVGl4zY)
+
+Watch the demo above to see Docuflash Mobile in action.
+
 ## Screenshots
 
 |                               Upload & share                               |                                   My uploads                                   |                                       Request files (QR)                                       |
@@ -13,12 +19,6 @@ Share files privately, from your phone. Docuflash Mobile is the [Expo](https://e
 |                                  Shared link viewer                                  |                                   Auth                                   |                                       Profile & theming                                      |
 | :----------------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :------------------------------------------------------------------------------------------: |
 | <img src="docs/screenshots/share-viewer.jpg" width="240" alt="Shared file viewer" /> | <img src="docs/screenshots/auth.jpg" width="240" alt="Sign in screen" /> | <img src="docs/screenshots/profile.jpg" width="240" alt="Profile and appearance settings" /> |
-
-## 🎥 Demo
-
-[![Docuflash Mobile Demo](https://img.youtube.com/vi/Ga8PkVGl4zY/maxresdefault.jpg)](https://www.youtube.com/watch?v=Ga8PkVGl4zY)
-
-Watch the demo above to see Docuflash Mobile in action, including file uploads, sharing, file requests, QR codes, authentication, and the mobile interface.
 
 ## Features
 
