@@ -6,30 +6,32 @@ Share files privately, from your phone. Docuflash Mobile is the [Expo](https://e
 
 ## Screenshots
 
-| Upload & share | My uploads | Request files (QR) |
-| :---: | :---: | :---: |
+|                               Upload & share                               |                                   My uploads                                   |                                       Request files (QR)                                       |
+| :------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------: |
 | <img src="docs/screenshots/upload.jpeg" width="240" alt="Upload screen" /> | <img src="docs/screenshots/uploads.jpg" width="240" alt="My uploads screen" /> | <img src="docs/screenshots/request.jpg" width="240" alt="Request files screen with QR code" /> |
 
-| Shared link viewer | Auth | Profile & theming |
-| :---: | :---: | :---: |
+|                                  Shared link viewer                                  |                                   Auth                                   |                                       Profile & theming                                      |
+| :----------------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :------------------------------------------------------------------------------------------: |
 | <img src="docs/screenshots/share-viewer.jpg" width="240" alt="Shared file viewer" /> | <img src="docs/screenshots/auth.jpg" width="240" alt="Sign in screen" /> | <img src="docs/screenshots/profile.jpg" width="240" alt="Profile and appearance settings" /> |
 
-<!-- Optional: 60–90s demo video — upload to YouTube (unlisted) and link it here.
-**[▶ Watch the demo](https://youtu.be/YOUR_VIDEO_ID)**
--->
+## 🎥 Demo
+
+[![Docuflash Mobile Demo](https://img.youtube.com/vi/Ga8PkVGl4zY/maxresdefault.jpg)](https://www.youtube.com/watch?v=Ga8PkVGl4zY)
+
+Watch the demo above to see Docuflash Mobile in action, including file uploads, sharing, file requests, QR codes, authentication, and the mobile interface.
 
 ## Features
 
-- **Upload & share** — pick up to 5 files (PDF, DOCX, XLSX, ZIP, TXT; 16 MB each), optionally group them into a named folder, and generate a share link.
-- **Request files** — generate a link (with QR code) that lets *anyone* send files to you, with public or password-protected access.
-- **Password protection** — mark any share or request as `Protected` (requires a password to open) or `Public`.
-- **Auto-expiry** — links self-delete on schedule, with date/time pickers for custom expiry.
-- **My uploads** — browse, search, copy, open, and delete your files and folders, with download counts and expiry badges.
-- **Share & folder viewers** — open a `share/…` or `folder/…` link to unlock (if protected), preview, and download.
-- **Deep links** — verified Android App Links / iOS Universal Links: `docuflash-frontend.vercel.app/share|folder|request/…` URLs open directly in the app.
-- **Authentication** — email/password sign-up & login plus native Google Sign-In, with sessions stored in secure storage.
-- **OTA updates** — JS updates ship instantly to installed apps via EAS Update channels (development / preview / production).
-- **Theming** — light / dark / system appearance, custom fonts (DM Sans + Source Serif 4), and a token-based design system.
+* **Upload & share** — pick up to 5 files (PDF, DOCX, XLSX, ZIP, TXT; 16 MB each), optionally group them into a named folder, and generate a share link.
+* **Request files** — generate a link (with QR code) that lets *anyone* send files to you, with public or password-protected access.
+* **Password protection** — mark any share or request as `Protected` (requires a password to open) or `Public`.
+* **Auto-expiry** — links self-delete on schedule, with date/time pickers for custom expiry.
+* **My uploads** — browse, search, copy, open, and delete your files and folders, with download counts and expiry badges.
+* **Share & folder viewers** — open a `share/…` or `folder/…` link to unlock (if protected), preview, and download.
+* **Deep links** — verified Android App Links / iOS Universal Links: `docuflash-frontend.vercel.app/share|folder|request/…` URLs open directly in the app.
+* **Authentication** — email/password sign-up & login plus native Google Sign-In, with sessions stored in secure storage.
+* **OTA updates** — JS updates ship instantly to installed apps via EAS Update channels (development / preview / production).
+* **Theming** — light / dark / system appearance, custom fonts (DM Sans + Source Serif 4), and a token-based design system.
 
 ## Architecture
 
@@ -44,58 +46,58 @@ graph LR
     C -.->|"App Links redirect<br/>share / folder / request"| A
 ```
 
-| Part | Role |
-| --- | --- |
-| **docuflash-mobile** (this repo) | Native iOS/Android client — uploads, share management, file requests, deep-link viewers |
-| [**Docuflash API**](https://docuflash-api.vercel.app) | REST backend — auth, share tokens, expiry, access control |
-| [**Docuflash Web**](https://docuflash-frontend.vercel.app) | Web frontend — share links resolve here and hand off to the app when installed |
+| Part                                                       | Role                                                                                    |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **docuflash-mobile** (this repo)                           | Native iOS/Android client — uploads, share management, file requests, deep-link viewers |
+| [**Docuflash API**](https://docuflash-api.vercel.app)      | REST backend — auth, share tokens, expiry, access control                               |
+| [**Docuflash Web**](https://docuflash-frontend.vercel.app) | Web frontend — share links resolve here and hand off to the app when installed          |
 
 ## Tech stack
 
-- **Expo SDK 56** + **React Native 0.85** + **React 19** (React Compiler enabled)
-- **Expo Router** for file-based, typed navigation
-- **TypeScript**
-- **react-hook-form** + **Zod** for forms and validation
-- **UploadThing** (`@uploadthing/expo`) for file uploads
-- **expo-secure-store** for session persistence
-- **@react-native-google-signin/google-signin** for native Google auth
-- **react-native-qrcode-svg** for shareable QR codes
-- **EAS Build + EAS Update** for builds and over-the-air JS updates
+* **Expo SDK 56** + **React Native 0.85** + **React 19** (React Compiler enabled)
+* **Expo Router** for file-based, typed navigation
+* **TypeScript**
+* **react-hook-form** + **Zod** for forms and validation
+* **UploadThing** (`@uploadthing/expo`) for file uploads
+* **expo-secure-store** for session persistence
+* **@react-native-google-signin/google-signin** for native Google auth
+* **react-native-qrcode-svg** for shareable QR codes
+* **EAS Build + EAS Update** for builds and over-the-air JS updates
 
-> ⚠️ Expo SDK 56 introduced breaking changes. Read the versioned docs at <https://docs.expo.dev/versions/v56.0.0/> before contributing.
+> ⚠️ Expo SDK 56 introduced breaking changes. Read the versioned docs at https://docs.expo.dev/versions/v56.0.0/ before contributing.
 
 ## Project structure
 
-```
+```text
 src/
-├── app/                       # Expo Router routes (file-based)
-│   ├── _layout.tsx            # Root stack, providers, auth redirect, font loading
-│   ├── index.tsx              # Entry redirect
-│   ├── auth.tsx               # Sign in / sign up
-│   ├── success.tsx            # Post-upload share-link confirmation (modal)
-│   ├── share/[shareToken].tsx # Public shared-file viewer (unlock / preview / download)
-│   ├── folder/[shareToken].tsx# Shared-folder viewer
-│   ├── request/new.tsx        # Create a file request (link + QR, public/protected)
+├── app/                         # Expo Router routes (file-based)
+│   ├── _layout.tsx              # Root stack, providers, auth redirect, font loading
+│   ├── index.tsx                # Entry redirect
+│   ├── auth.tsx                 # Sign in / sign up
+│   ├── success.tsx              # Post-upload share-link confirmation (modal)
+│   ├── share/[shareToken].tsx   # Public shared-file viewer (unlock / preview / download)
+│   ├── folder/[shareToken].tsx  # Shared-folder viewer
+│   ├── request/new.tsx          # Create a file request (link + QR, public/protected)
 │   ├── request/[shareToken].tsx # Fulfil a file request (upload to someone's folder)
-│   └── (tabs)/                # Authenticated tab navigator
-│       ├── index.tsx          # Upload screen
-│       ├── uploads.tsx        # My uploads (files & folders)
-│       └── profile.tsx        # Account, storage, settings, appearance
-├── components/                # Icon + reusable UI primitives (Button, Card, Field, …)
-├── constants/                 # API base URL, auth, upload limits & MIME types
-├── hooks/                     # useUploadSubmit, useColorScheme
-├── lib/                       # API client, auth/files/folder endpoints, upload, session, validation
-├── state/                     # AuthProvider (auth context)
-├── theme/                     # ThemeProvider + design tokens
-└── types/                     # Shared TypeScript types (auth, file, folder)
+│   └── (tabs)/                  # Authenticated tab navigator
+│       ├── index.tsx            # Upload screen
+│       ├── uploads.tsx          # My uploads (files & folders)
+│       └── profile.tsx          # Account, storage, settings, appearance
+├── components/                  # Icon + reusable UI primitives (Button, Card, Field, …)
+├── constants/                   # API base URL, auth, upload limits & MIME types
+├── hooks/                       # useUploadSubmit, useColorScheme
+├── lib/                         # API client, auth/files/folder endpoints, upload, session, validation
+├── state/                       # AuthProvider (auth context)
+├── theme/                       # ThemeProvider + design tokens
+└── types/                       # Shared TypeScript types (auth, file, folder)
 ```
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js (see `eas.json` — builds use 22.13.0)
-- A running Docuflash backend, or use the deployed default API
+* Node.js (see `eas.json` — builds use 22.13.0)
+* A running Docuflash backend, or use the deployed default API
 
 ### 1. Install dependencies
 
@@ -111,12 +113,12 @@ Copy `.env.example` to `.env` and fill in the values:
 cp .env.example .env
 ```
 
-| Variable | Description |
-| --- | --- |
-| `EXPO_PUBLIC_BASE_URL` | Backend REST + UploadThing host. Defaults to the deployed API. For a local backend on a device/simulator, use your machine's LAN IP (not `localhost`). |
-| `EXPO_PUBLIC_SHARE_BASE_URL` | Where share links resolve (the web frontend host). Optional. |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google "Web client" OAuth ID (needed for an idToken). Requires a custom dev build. |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google "iOS client" OAuth ID (iOS only). The reversed form also goes in `app.json`'s `iosUrlScheme`. |
+| Variable                           | Description                                                                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EXPO_PUBLIC_BASE_URL`             | Backend REST + UploadThing host. Defaults to the deployed API. For a local backend on a device/simulator, use your machine's LAN IP (not `localhost`). |
+| `EXPO_PUBLIC_SHARE_BASE_URL`       | Where share links resolve (the web frontend host). Optional.                                                                                           |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google "Web client" OAuth ID (needed for an idToken). Requires a custom dev build.                                                                     |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google "iOS client" OAuth ID (iOS only). The reversed form also goes in `app.json`'s `iosUrlScheme`.                                                   |
 
 ### 3. Start the app
 
@@ -131,14 +133,14 @@ npm run web        # run in the browser
 
 ## Scripts
 
-| Script | Description |
-| --- | --- |
-| `npm start` | Start the Expo dev server |
-| `npm run android` / `ios` / `web` | Run on a target platform |
-| `npm run lint` | Lint with `expo lint` |
-| `npm run build:development:*` | EAS development build (Android / iOS) |
-| `npm run build:preview` | EAS preview build (all platforms) |
-| `npm run build` | EAS production build (all platforms) |
+| Script                               | Description                                     |
+| ------------------------------------ | ----------------------------------------------- |
+| `npm start`                          | Start the Expo dev server                       |
+| `npm run android` / `ios` / `web`    | Run on a target platform                        |
+| `npm run lint`                       | Lint with `expo lint`                           |
+| `npm run build:development:*`        | EAS development build (Android / iOS)           |
+| `npm run build:preview`              | EAS preview build (all platforms)               |
+| `npm run build`                      | EAS production build (all platforms)            |
 | `npm run update:production -- "msg"` | Ship an OTA JS update to the production channel |
 
 ## Building & releasing
