@@ -6,7 +6,7 @@ import { getFileByShareToken, getFileDownloadUrl, getFilePreview, verifyFilePass
 import { openFileInApp, openTextInApp, saveFileToDevice, shareFile, shareText } from '@/lib/files'
 import { formatExpiry, formatFileSize } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
-import { FileAccessType, FileType, type FileRecord } from '@/types/file'
+import { FileAccessType, FileType, isPreviewableFileType, type FileRecord } from '@/types/file'
 import { useLocalSearchParams } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, View } from 'react-native'
@@ -53,6 +53,9 @@ export default function SharedFileScreen() {
 
   const isProtected = file?.accessType === FileAccessType.PROTECTED
   const locked = isProtected && !accessToken
+  // Upload-to-me links accept any file, and the API only renders previews for the
+  // handful of formats it understands — everything else is download/share only.
+  const canPreview = file ? isPreviewableFileType(file.fileType) : false
 
   const unlock = useCallback(async () => {
     if (!shareToken || !password) return
@@ -89,6 +92,11 @@ export default function SharedFileScreen() {
     if (!shareToken || !file) return
     setBusy(true)
     try {
+      if (!canPreview) {
+        const { fileUrl } = await getFileDownloadUrl(shareToken, accessToken)
+        await shareFile(fileUrl, file.fileName, file.fileType)
+        return
+      }
       const preview = await getFilePreview(shareToken, accessToken)
       if (preview.kind === 'text') {
         await shareText(preview.text, file.fileName)
@@ -210,7 +218,7 @@ export default function SharedFileScreen() {
       ) : (
         <View style={{ width: '100%', gap: 10, marginTop: 24 }}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Button title="Preview" variant="outline" icon="eye" onPress={onPreview} loading={busy} style={{ flex: 1 }} />
+            {canPreview ? <Button title="Preview" variant="outline" icon="eye" onPress={onPreview} loading={busy} style={{ flex: 1 }} /> : null}
             <Button title="Download" icon="download" onPress={onDownload} loading={busy} style={{ flex: 1 }} />
           </View>
           <Button title="Share" variant="outline" icon="share" onPress={onShare} loading={busy} />

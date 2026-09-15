@@ -2,7 +2,7 @@ import { DEFAULT_UPLOAD_FOLDER_NAME, MAX_UPLOAD_FILES } from '@/constants/upload
 import { deleteFileByShareToken, deleteUploadedStorageFile, uploadFile } from '@/lib/api/files'
 import { createFolder } from '@/lib/api/folder'
 import { getClientId, getDeviceInfo, getFolderShareLink, getShareLink, resolveFileType, type PickedFile } from '@/lib/upload'
-import { toUploadFile, uploadFiles } from '@/lib/uploadthing'
+import { toUploadFile, totalProgressToPercent, uploadFiles } from '@/lib/uploadthing'
 import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { FileAccessType, type UploadedShareLink } from '@/types/file'
 import { useAtomValue, useSetAtom } from 'jotai'
@@ -46,7 +46,7 @@ export function useUploadSubmit() {
       const uploadables = await Promise.all(selected.map((f) => toUploadFile(f)))
       const uploaded = await uploadFiles('fileUploader', {
         files: uploadables,
-        onUploadProgress: ({ totalProgress }) => setProgress(totalProgress),
+        onUploadProgress: ({ totalProgress }) => setProgress(totalProgressToPercent(totalProgress)),
       })
       // Files are transferred; keep the bar full while we register metadata.
       setProgress(100)

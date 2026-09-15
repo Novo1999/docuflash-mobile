@@ -1,4 +1,4 @@
-import { toUploadFile, uploadFiles } from '@/lib/uploadthing'
+import { toUploadFile, totalProgressToPercent, uploadFiles } from '@/lib/uploadthing'
 import type { ImagePickerAsset } from 'expo-image-picker'
 
 export async function uploadAvatar(
@@ -13,7 +13,7 @@ export async function uploadAvatar(
   })
   const [result] = await uploadFiles('avatarUploader', {
     files: [rnFile],
-    onUploadProgress: ({ totalProgress }) => onUploadProgress?.(totalProgress),
+    onUploadProgress: ({ totalProgress }) => onUploadProgress?.(totalProgressToPercent(totalProgress)),
   })
   if (!result?.url) throw new Error('Upload did not return a URL')
   return result.url

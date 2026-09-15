@@ -1,2 +1,5 @@
 export { ActiveRequestCard } from './ActiveRequestCard'
+export { CollectedFileRow } from './CollectedFileRow'
+export { IncomingUploadBanner } from './IncomingUploadBanner'
+export { PickedFileRow } from './PickedFileRow'
 export { RequestPasswordGate } from './RequestPasswordGate'

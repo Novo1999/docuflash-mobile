@@ -1,22 +1,22 @@
 import { Icon } from '@/components/Icon'
-import { RequestPasswordGate } from '@/components/request'
-import { AppText, Button, Card, FileTypeBadge, IconButton, Pill } from '@/components/ui'
+import { CollectedFileRow, IncomingUploadBanner, PickedFileRow, RequestPasswordGate } from '@/components/request'
+import { AppText, Button, ConfirmModal, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
-import { ACCEPTED_UPLOAD_MIME_TYPES, MAX_UPLOAD_FILES, MAX_UPLOAD_FILE_SIZE_BYTES } from '@/constants/upload'
+import { MAX_REQUEST_UPLOAD_FILE_SIZE_BYTES, MAX_REQUEST_UPLOAD_FILE_SIZE_MB, MAX_UPLOAD_FILES } from '@/constants/upload'
 import { useRequestRealtime, type UploadingPayload } from '@/hooks/useRequestRealtime'
-import { deleteUploadedStorageFile } from '@/lib/api/files'
+import { deleteFileByShareToken, deleteUploadedStorageFile } from '@/lib/api/files'
 import { getFolderByShareToken, unlockFolderByShareToken, uploadToRequest } from '@/lib/api/folder'
-import { formatExpiry, formatFileSize, getClientId, getDeviceInfo, resolveFileType, type PickedFile } from '@/lib/upload'
-import { toUploadFile, uploadFiles } from '@/lib/uploadthing'
+import { formatExpiry, getClientId, getDeviceInfo, resolveFileType, type PickedFile } from '@/lib/upload'
+import { toUploadFile, totalProgressToPercent, uploadFiles } from '@/lib/uploadthing'
 import { useAuth } from '@/state/AuthProvider'
 import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { useTheme } from '@/theme/ThemeProvider'
-import { FileAccessType, FileType } from '@/types/file'
+import { FileAccessType, FileType, type FileRecord } from '@/types/file'
 import type { FolderRecord, RequestFileUpload } from '@/types/folder'
 import * as DocumentPicker from 'expo-document-picker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSetAtom } from 'jotai'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 
 export default function RequestUploadScreen() {
@@ -39,6 +39,13 @@ export default function RequestUploadScreen() {
   const [folderPassword, setFolderPassword] = useState<string | null>(null)
   const [unlocking, setUnlocking] = useState(false)
   const [unlockError, setUnlockError] = useState<string | null>(null)
+
+  const [pendingDelete, setPendingDelete] = useState<FileRecord | null>(null)
+  const [deletingToken, setDeletingToken] = useState<string | null>(null)
+
+  // Progress per picked file, keyed by the index it holds in `files`.
+  const [fileProgress, setFileProgress] = useState<Record<number, number>>({})
+  const lastBroadcastProgress = useRef(0)
 
   const isProtected = folder?.accessType === FileAccessType.PROTECTED
   const locked = isProtected && folderPassword === null
@@ -101,21 +108,18 @@ export default function RequestUploadScreen() {
 
   const pickFiles = async () => {
     setError(null)
+    // Upload-to-me links take any file type, so the picker is left unfiltered.
     const result = await DocumentPicker.getDocumentAsync({
       multiple: true,
       copyToCacheDirectory: true,
-      type: ACCEPTED_UPLOAD_MIME_TYPES,
+      type: '*/*',
     })
     if (result.canceled) return
     const picked: PickedFile[] = result.assets
       .map((a) => ({ uri: a.uri, name: a.name, size: a.size ?? 0, mimeType: a.mimeType }))
       .filter((a) => {
-        if (!resolveFileType(a)) {
-          setError(`"${a.name}" is not a supported file type.`)
-          return false
-        }
-        if (a.size > MAX_UPLOAD_FILE_SIZE_BYTES) {
-          setError(`"${a.name}" exceeds the 16 MB limit.`)
+        if (a.size > MAX_REQUEST_UPLOAD_FILE_SIZE_BYTES) {
+          setError(`"${a.name}" exceeds the ${MAX_REQUEST_UPLOAD_FILE_SIZE_MB} MB limit.`)
           return false
         }
         return true
@@ -128,41 +132,60 @@ export default function RequestUploadScreen() {
   const onUpload = async () => {
     if (!shareToken || files.length === 0) return
     const selected = files.slice(0, MAX_UPLOAD_FILES)
-    const withTypes = selected.map((f) => ({ file: f, fileType: resolveFileType(f) }))
-    const unsupported = withTypes.find(({ fileType }) => !fileType)?.file
-    if (unsupported) {
-      setError(`"${unsupported.name}" is not a supported file type.`)
-      return
-    }
+    const withTypes = selected.map((f) => ({ file: f, fileType: resolveFileType(f) ?? FileType.OTHER }))
 
     setError(null)
     setUploading(true)
     setIsUploading(true)
     setProgress(0)
+    setFileProgress({})
+    lastBroadcastProgress.current = 0
 
     const uploaderName = user?.displayName ?? null
     const representativeName = selected.length > 1 ? `${selected.length} files` : selected[0].name
-    broadcastUploading({ fileName: representativeName, uploaderName })
+    broadcastUploading({ fileName: representativeName, uploaderName, progress: 0 })
 
     try {
       const clientId = await getClientId()
       const deviceInfo = getDeviceInfo()
       const uploadables = await Promise.all(selected.map((f) => toUploadFile(f)))
-      const uploaded = await uploadFiles('fileUploader', {
+      const uploaded = await uploadFiles('requestUploader', {
         files: uploadables,
-        onUploadProgress: ({ totalProgress }) => setProgress(totalProgress),
+        onUploadProgress: ({ file, progress: filePercent, totalProgress }) => {
+          // Match on identity rather than name so duplicate file names can't cross over.
+          const index = uploadables.findIndex((candidate) => candidate === file)
+          if (index !== -1) {
+            const rounded = Math.round(filePercent)
+            setFileProgress((prev) => (prev[index] === rounded ? prev : { ...prev, [index]: rounded }))
+          }
+
+          // Rounded so the atom bails out instead of re-rendering on every XHR tick.
+          const totalPercent = Math.round(totalProgressToPercent(totalProgress))
+          setProgress(totalPercent)
+
+          // The channel is shared and progress events are frequent, so only tell
+          // the watcher about meaningful jumps.
+          if (totalPercent - lastBroadcastProgress.current >= 5) {
+            lastBroadcastProgress.current = totalPercent
+            broadcastUploading({ fileName: representativeName, uploaderName, progress: totalPercent })
+          }
+        },
       })
       setProgress(100)
+      setFileProgress(Object.fromEntries(selected.map((_, index) => [index, 100])))
 
       if (!uploaded || uploaded.length !== withTypes.length) {
         throw new Error('Upload did not return every storage key')
       }
 
-      const payload: RequestFileUpload[] = uploaded.map((file, index) => {
-        const fileType = withTypes[index]?.fileType
-        if (!fileType) throw new Error(`Could not resolve file type for ${file.name}`)
-        return { fileName: file.name, fileType, fileSize: file.size, storageKey: file.key, clientId, deviceInfo }
-      })
+      const payload: RequestFileUpload[] = uploaded.map((file, index) => ({
+        fileName: file.name,
+        fileType: withTypes[index]?.fileType ?? FileType.OTHER,
+        fileSize: file.size,
+        storageKey: file.key,
+        clientId,
+        deviceInfo,
+      }))
 
       try {
         await uploadToRequest(shareToken, payload, folderPassword ?? undefined)
@@ -180,6 +203,27 @@ export default function RequestUploadScreen() {
       setUploading(false)
       setIsUploading(false)
       setProgress(0)
+      setFileProgress({})
+    }
+  }
+
+  const onDeleteFile = async () => {
+    if (!pendingDelete) return
+    const { shareToken: fileToken } = pendingDelete
+
+    setPendingDelete(null)
+    setDeletingToken(fileToken)
+    setError(null)
+
+    try {
+      // The backend removes the object from UploadThing before dropping the row,
+      // so a success here means the file is gone from storage too.
+      await deleteFileByShareToken(fileToken)
+      await refetch()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not delete that file. Please try again.')
+    } finally {
+      setDeletingToken(null)
     }
   }
 
@@ -244,35 +288,14 @@ export default function RequestUploadScreen() {
         {isProtected ? <Pill label="Protected" tone="accent" icon={<Icon name="lock" size={10} color={colors.accentText} strokeWidth={2.2} />} /> : null}
       </View>
 
-      {incoming ? (
-        <View
-          style={{
-            width: '100%',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-            marginTop: 18,
-            padding: 12,
-            borderRadius: radii.lg,
-            borderWidth: 1,
-            borderColor: colors.accent,
-            backgroundColor: colors.accentSoftBg,
-          }}
-        >
-          <ActivityIndicator color={colors.accent} />
-          <AppText size={12.5} color={colors.text} style={{ flex: 1 }}>
-            {incoming.uploaderName ?? 'A user'} is uploading{' '}
-            <AppText weight="semibold" size={12.5} color={colors.text}>
-              {incoming.fileName}
-            </AppText>
-          </AppText>
-        </View>
-      ) : null}
+      {incoming ? <IncomingUploadBanner incoming={incoming} /> : null}
 
-      <View pointerEvents={uploading ? 'none' : 'auto'} style={{ width: '100%', opacity: uploading ? 0.5 : 1, marginTop: 18 }}>
+      <View pointerEvents={uploading ? 'none' : 'auto'} style={{ width: '100%', marginTop: 18 }}>
+        {/* Only the dropzone dims during an upload — the file rows below carry the progress bars. */}
         <Pressable
           onPress={pickFiles}
           style={{
+            opacity: uploading ? 0.5 : 1,
             borderWidth: 1.5,
             borderStyle: 'dashed',
             borderColor: colors.dashBorder,
@@ -294,29 +317,15 @@ export default function RequestUploadScreen() {
             </AppText>
           </AppText>
           <AppText size={11.5} color={colors.mutedSoft} style={{ textAlign: 'center', lineHeight: 16 }}>
-            PDF · DOCX · XLSX · ZIP · TXT{'\n'}Up to 5 files · 16 MB each
+            Any file type{'\n'}Up to {MAX_UPLOAD_FILES} files · {MAX_REQUEST_UPLOAD_FILE_SIZE_MB} MB each
           </AppText>
         </Pressable>
 
         {files.length > 0 ? (
           <View style={{ gap: 9, marginTop: 14 }}>
-            {files.map((f) => {
-              const type = resolveFileType(f) ?? FileType.OTHER
-              return (
-                <Card key={f.uri} padding={11} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  <FileTypeBadge type={type} size={38} radius={11} />
-                  <View style={{ flex: 1 }}>
-                    <AppText weight="semibold" size={13} numberOfLines={1}>
-                      {f.name}
-                    </AppText>
-                    <AppText size={11} color={colors.mutedSoft} style={{ marginTop: 2 }}>
-                      {formatFileSize(f.size)}
-                    </AppText>
-                  </View>
-                  <IconButton name="close" tone="plain" color={colors.mutedSoft} disabled={uploading} onPress={() => removeFile(f.uri)} />
-                </Card>
-              )
-            })}
+            {files.map((f, index) => (
+              <PickedFileRow key={f.uri} file={f} uploading={uploading} progress={fileProgress[index] ?? 0} onRemove={() => removeFile(f.uri)} />
+            ))}
           </View>
         ) : null}
       </View>
@@ -354,22 +363,13 @@ export default function RequestUploadScreen() {
         </AppText>
         {folder.files.length > 0 ? (
           folder.files.map((file) => (
-            <Pressable
+            <CollectedFileRow
               key={file.id}
-              onPress={() => router.push(`/share/${file.shareToken}`)}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 9 }}
-            >
-              <FileTypeBadge type={file.fileType} size={38} radius={11} />
-              <View style={{ flex: 1 }}>
-                <AppText weight="medium" size={13} numberOfLines={1}>
-                  {file.fileName}
-                </AppText>
-                <AppText size={11} color={colors.mutedSoft} style={{ marginTop: 2 }}>
-                  {formatFileSize(file.fileSize)}
-                </AppText>
-              </View>
-              <Icon name="chevron-right" size={18} color={colors.mutedSoft} strokeWidth={2} />
-            </Pressable>
+              file={file}
+              deleting={deletingToken === file.shareToken}
+              onOpen={() => router.push(`/share/${file.shareToken}`)}
+              onDelete={() => setPendingDelete(file)}
+            />
           ))
         ) : (
           <AppText size={12.5} color={colors.mutedSoft} style={{ paddingVertical: 9 }}>
@@ -384,6 +384,17 @@ export default function RequestUploadScreen() {
           Files auto-delete 2 hours after upload
         </AppText>
       </View>
+
+      <ConfirmModal
+        visible={pendingDelete !== null}
+        icon="trash"
+        tone="danger"
+        title="Delete this file?"
+        message={pendingDelete ? `"${pendingDelete.fileName}" will be removed from storage for everyone. This can't be undone.` : undefined}
+        confirmLabel="Delete"
+        onConfirm={onDeleteFile}
+        onClose={() => setPendingDelete(null)}
+      />
     </Screen>
   )
 }

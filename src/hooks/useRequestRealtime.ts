@@ -6,6 +6,8 @@ import { useEffect, useRef } from 'react'
 export type UploadingPayload = {
   fileName: string
   uploaderName: string | null
+  /** Overall progress of the sender's batch (0-100). Absent on the first tick. */
+  progress?: number
 }
 
 type Handlers = {

@@ -15,6 +15,10 @@ export const ACCEPTED_UPLOAD_EXTENSIONS = ['.pdf', '.docx', '.xlsx', '.xls', '.z
 export const MAX_UPLOAD_FILES = 5
 export const MAX_UPLOAD_FILE_SIZE_MB = 16
 export const MAX_UPLOAD_FILE_SIZE_BYTES = MAX_UPLOAD_FILE_SIZE_MB * 1024 * 1024
+
+// "Upload to me" links accept any file type, so they get their own, larger cap.
+export const MAX_REQUEST_UPLOAD_FILE_SIZE_MB = 500
+export const MAX_REQUEST_UPLOAD_FILE_SIZE_BYTES = MAX_REQUEST_UPLOAD_FILE_SIZE_MB * 1024 * 1024
 export const DEFAULT_UPLOAD_FOLDER_NAME = 'New Folder'
 export const SUPPORTED_UPLOAD_FORMATS = ['PDF', 'DOCX', 'XLSX', 'ZIP', 'TXT']
 
