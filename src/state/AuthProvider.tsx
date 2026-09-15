@@ -1,4 +1,5 @@
 import {
+  deleteAccount as deleteAccountApi,
   getCurrentUser,
   loginUser,
   loginWithGoogleNative,
@@ -22,6 +23,7 @@ type AuthContextValue = {
   register: (payload: RegisterPayload) => Promise<{ needsEmailConfirmation: boolean }>
   completePasswordReset: (payload: ResetPasswordPayload) => Promise<void>
   logout: () => Promise<void>
+  deleteAccount: () => Promise<void>
   refreshUser: () => Promise<void>
   updateProfile: (payload: UpdateProfilePayload) => Promise<void>
 }
@@ -117,6 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('unauthenticated')
   }
 
+  const deleteAccount: AuthContextValue['deleteAccount'] = async () => {
+    await deleteAccountApi()
+    await persistSession(null)
+    setUser(null)
+    setStatus('unauthenticated')
+  }
+
   const refreshUser: AuthContextValue['refreshUser'] = async () => {
     const me = await getCurrentUser()
     setUser(me)
@@ -128,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, login, loginWithGoogle, loginWithOAuth, register, completePasswordReset, logout, refreshUser, updateProfile }),
+    () => ({ user, status, login, loginWithGoogle, loginWithOAuth, register, completePasswordReset, logout, deleteAccount, refreshUser, updateProfile }),
     [user, status],
   )
 

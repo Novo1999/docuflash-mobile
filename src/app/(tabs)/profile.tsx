@@ -1,6 +1,5 @@
-import { Icon } from '@/components/Icon'
-import { SettingRow, SettingRowStacked } from '@/components/profile'
-import { AppText, ConfirmModal, IconButton, Pill, Segmented } from '@/components/ui'
+import { DangerActionButton, SettingRow, SettingRowStacked } from '@/components/profile'
+import { AppText, ConfirmModal, IconButton, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
 import { uploadAvatar } from '@/lib/avatar'
 import { useAuth } from '@/state/AuthProvider'
@@ -20,13 +19,15 @@ const APPEARANCE_LABEL: Record<ThemePreference, string> = {
 
 export default function ProfileScreen() {
   const { colors, radii, preference, setPreference } = useTheme()
-  const { user, logout, updateProfile } = useAuth()
+  const { user, logout, deleteAccount, updateProfile } = useAuth()
   const initialExpiry = user?.defaultExpiry ?? '7d'
   const initialPrivacy = user?.defaultPrivacy === FileAccessType.PUBLIC ? FileAccessType.PUBLIC : FileAccessType.PROTECTED
   const [expiryKey, setExpiryKey] = useState(initialExpiry)
   const [privacy, setPrivacy] = useState<FileAccessType>(initialPrivacy)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [signOutOpen, setSignOutOpen] = useState(false)
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
   const name = user?.displayName || user?.email?.split('@')[0] || 'Your account'
   const initial = name.trim().charAt(0).toUpperCase()
@@ -105,6 +106,18 @@ export default function ProfileScreen() {
   }
 
   const onSignOut = () => setSignOutOpen(true)
+
+  const onDeleteAccount = async () => {
+    setDeletingAccount(true)
+    try {
+      await deleteAccount()
+      setDeleteAccountOpen(false)
+    } catch (error) {
+      Alert.alert('Unable to delete account', error instanceof Error ? error.message : 'Try again.')
+    } finally {
+      setDeletingAccount(false)
+    }
+  }
 
   return (
     <Screen key={user?.id ?? 'anonymous'} scroll edges={['top']}>
@@ -206,26 +219,15 @@ export default function ProfileScreen() {
         <SettingRow icon="appearance" label="Appearance" value={APPEARANCE_LABEL[preference]} onPress={cycleAppearance} last />
       </View>
 
-      <Pressable
-        onPress={onSignOut}
-        style={({ pressed }) => ({
-          marginTop: 24,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          borderWidth: 1,
-          borderColor: colors.dangerBorder,
-          borderRadius: radii.md + 1,
-          paddingVertical: 14,
-          opacity: pressed ? 0.8 : 1,
-        })}
-      >
-        <Icon name="logout" size={16} color={colors.danger} strokeWidth={1.7} />
-        <AppText weight="semibold" size={14} color={colors.danger}>
-          Sign out
-        </AppText>
-      </Pressable>
+      <DangerActionButton icon="logout" label="Sign out" onPress={onSignOut} style={{ marginTop: 24 }} />
+
+      <DangerActionButton
+        icon="trash"
+        label="Delete account"
+        onPress={() => setDeleteAccountOpen(true)}
+        disabled={deletingAccount}
+        style={{ marginTop: 12 }}
+      />
 
       <ConfirmModal
         visible={signOutOpen}
@@ -239,6 +241,18 @@ export default function ProfileScreen() {
           logout()
         }}
         onClose={() => setSignOutOpen(false)}
+      />
+
+      <ConfirmModal
+        visible={deleteAccountOpen}
+        icon="trash"
+        tone="danger"
+        title="Delete account"
+        message="This permanently deletes your account along with every file and folder you've uploaded. This cannot be undone."
+        confirmLabel="Delete account"
+        loading={deletingAccount}
+        onConfirm={onDeleteAccount}
+        onClose={() => setDeleteAccountOpen(false)}
       />
     </Screen>
   )

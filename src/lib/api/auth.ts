@@ -62,6 +62,13 @@ export async function updateProfile(payload: UpdateProfilePayload): Promise<Auth
   return requireApiData(response, 'Failed to update your profile')
 }
 
+export async function deleteAccount(): Promise<void> {
+  const response = await apiClient<null>('/api/auth/me', { method: 'DELETE' })
+  if (!response.success) {
+    throw new ApiError(response.msg || 'Failed to delete your account', response.status)
+  }
+}
+
 export function getOAuthUrl(provider: OAuthProvider): string {
   return `${buildApiUrl(`/api/auth/oauth/${provider}`)}?redirect=${encodeURIComponent(OAUTH_NATIVE_REDIRECT_URL)}`
 }
