@@ -6,30 +6,37 @@ import { useUploadSubmit } from '@/hooks/useUploadSubmit'
 import { computeExpireAt, formatFileSize, resolveFileType, type PickedFile } from '@/lib/upload'
 import { useAuth } from '@/state/AuthProvider'
 import { useTheme } from '@/theme/ThemeProvider'
+import type { AuthUser } from '@/types/auth'
 import { FileAccessType, FileType } from '@/types/file'
 import * as DocumentPicker from 'expo-document-picker'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Alert, Pressable, Switch, View } from 'react-native'
 
 export default function UploadScreen() {
-  const { colors, radii } = useTheme()
   const { user } = useAuth()
+  return <UploadScreenContent key={user?.id ?? 'anonymous'} user={user} />
+}
+
+function UploadScreenContent({ user }: { user: AuthUser | null }) {
+  const { colors, radii } = useTheme()
   const router = useRouter()
   const { submit, isUploading } = useUploadSubmit()
 
   const [files, setFiles] = useState<PickedFile[]>([])
   const [folderName, setFolderName] = useState('')
-  const [access, setAccess] = useState<FileAccessType>(FileAccessType.PROTECTED)
+  const [accessOverride, setAccessOverride] = useState<FileAccessType>()
   const [password, setPassword] = useState('')
   const [deleteAfterDownload, setDeleteAfterDownload] = useState(false)
-  const [expiryKey, setExpiryKey] = useState('7d')
+  const [expiryKeyOverride, setExpiryKeyOverride] = useState<string>()
   const [customDate, setCustomDate] = useState<Date | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerInitial, setPickerInitial] = useState(() => new Date())
   const [error, setError] = useState<string | null>(null)
 
+  const access = accessOverride ?? (user?.defaultPrivacy === 'public' ? FileAccessType.PUBLIC : FileAccessType.PROTECTED)
+  const expiryKey = expiryKeyOverride ?? user?.defaultExpiry ?? '7d'
   const isCustom = expiryKey === 'custom'
   const customLabel = customDate ? customDate.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Custom…'
 
@@ -42,17 +49,11 @@ export default function UploadScreen() {
 
   const onConfirmCustom = (date: Date) => {
     setCustomDate(date)
-    setExpiryKey('custom')
+    setExpiryKeyOverride('custom')
     setPickerOpen(false)
   }
 
   const initial = (user?.displayName || user?.email || 'A').trim().charAt(0).toUpperCase()
-
-  useEffect(() => {
-    if (!user) return
-    setAccess(user.defaultPrivacy === 'public' ? FileAccessType.PUBLIC : FileAccessType.PROTECTED)
-    setExpiryKey(user.defaultExpiry ?? '7d')
-  }, [user])
 
   const pickFiles = async () => {
     setError(null)
@@ -270,7 +271,7 @@ export default function UploadScreen() {
         <View style={{ marginTop: 16 }}>
           <Segmented
             value={access}
-            onChange={setAccess}
+            onChange={setAccessOverride}
             options={[
               { value: FileAccessType.PROTECTED, label: 'Protected', icon: 'lock' },
               { value: FileAccessType.PUBLIC, label: 'Public' },
@@ -293,7 +294,7 @@ export default function UploadScreen() {
             return (
               <Pressable
                 key={preset.key}
-                onPress={() => setExpiryKey(preset.key)}
+                onPress={() => setExpiryKeyOverride(preset.key)}
                 style={{
                   alignItems: 'center',
                   paddingVertical: 8,

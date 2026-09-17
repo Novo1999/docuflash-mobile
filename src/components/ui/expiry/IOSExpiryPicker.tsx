@@ -1,6 +1,6 @@
 import { useTheme } from '@/theme/ThemeProvider'
 import DateTimePicker from '@react-native-community/datetimepicker'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Modal, Pressable, View } from 'react-native'
 import { AppText } from '../AppText'
 import { Button } from '../Button'
@@ -19,14 +19,7 @@ function formatPreview(date: Date): string {
 export function IOSExpiryPicker({ visible, value, onConfirm, onClose }: ExpiryPickerProps) {
   const { colors, radii, mode } = useTheme()
   const [draft, setDraft] = useState(value)
-  const [minDate, setMinDate] = useState(() => new Date())
-
-  useEffect(() => {
-    if (visible) {
-      setDraft(value)
-      setMinDate(new Date())
-    }
-  }, [visible, value])
+  const minDate = new Date()
 
   const isPast = draft.getTime() <= minDate.getTime()
 

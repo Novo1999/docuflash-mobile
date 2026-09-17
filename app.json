@@ -58,9 +58,6 @@
             }
           ]
         }
-      ],
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -91,7 +88,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Docuflash to access your photos to set a profile picture.",
-          "cameraPermission": "Allow Docuflash to use the camera to take a profile picture."
+          "cameraPermission": "Allow Docuflash to use the camera to take a profile picture.",
+          "microphonePermission": false
         }
       ],
       "expo-font",

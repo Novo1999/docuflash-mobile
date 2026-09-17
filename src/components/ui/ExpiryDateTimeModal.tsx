@@ -5,5 +5,9 @@ import type { ExpiryPickerProps } from './expiry/types'
 
 export function ExpiryDateTimeModal(props: ExpiryPickerProps) {
   // Android shows a native dialog (no RN Modal); iOS renders an inline bottom sheet.
-  return Platform.OS === 'android' ? <AndroidExpiryPicker {...props} /> : <IOSExpiryPicker {...props} />
+  return Platform.OS === 'android' ? (
+    <AndroidExpiryPicker {...props} />
+  ) : (
+    <IOSExpiryPicker key={`${props.visible ? 'open' : 'closed'}-${props.value.getTime()}`} {...props} />
+  )
 }
