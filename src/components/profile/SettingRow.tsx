@@ -18,6 +18,9 @@ export function SettingRow({ icon, label, value, right, onPress, last }: Setting
   return (
     <Pressable
       onPress={onPress}
+      disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? label : undefined}
       style={{
         flexDirection: 'row',
         alignItems: 'center',

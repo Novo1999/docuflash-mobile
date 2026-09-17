@@ -2,6 +2,7 @@
   "expo": {
     "name": "Docuflash",
     "slug": "docuflash-mobile",
+    "description": "Securely share documents with password-protected, self-expiring links.",
     "version": "1.0.0",
     "runtimeVersion": {
       "policy": "fingerprint"
@@ -10,13 +11,13 @@
       "url": "https://u.expo.dev/7b366d99-ded1-476e-a8a2-aa89420c8f4f"
     },
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/docuflash-app-icon-v2.png",
     "scheme": "docuflashmobile",
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.novodip.docuflashmobile",
       "buildNumber": "1",
-      "icon": "./assets/images/icon.png",
+      "icon": "./assets/images/docuflash-app-icon-v2.png",
       "associatedDomains": [
         "applinks:docuflash-frontend.vercel.app"
       ],
@@ -27,7 +28,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/icon.png"
+        "foregroundImage": "./assets/images/docuflash-adaptive-foreground-v2.png"
       },
       "versionCode": 1,
       "predictiveBackGestureEnabled": false,
@@ -69,7 +70,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon.png",
+          "image": "./assets/images/docuflash-adaptive-foreground-v2.png",
           "imageWidth": 200,
           "backgroundColor": "#f5f0e8"
         }

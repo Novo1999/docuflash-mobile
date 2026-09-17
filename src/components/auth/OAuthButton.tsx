@@ -16,6 +16,9 @@ export function OAuthButton({ label, icon, onPress, loading }: OAuthButtonProps)
     <Pressable
       onPress={onPress}
       disabled={loading}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!loading, busy: !!loading }}
       style={({ pressed }) => ({
         flex: 1,
         flexDirection: 'row',

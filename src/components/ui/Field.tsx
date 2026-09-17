@@ -11,7 +11,7 @@ type FieldProps = TextInputProps & {
   error?: string
 }
 
-export function Field({ label, icon, secure = false, error, style, ...rest }: FieldProps) {
+export function Field({ label, icon, secure = false, error, style, accessibilityLabel, ...rest }: FieldProps) {
   const { colors, radii, fonts } = useTheme()
   const [hidden, setHidden] = useState(secure)
   const hasValue = !!rest.value
@@ -48,10 +48,16 @@ export function Field({ label, icon, secure = false, error, style, ...rest }: Fi
           secureTextEntry={hidden}
           autoCapitalize="none"
           autoCorrect={false}
+          accessibilityLabel={accessibilityLabel ?? label ?? rest.placeholder}
           {...rest}
         />
         {secure ? (
-          <Pressable onPress={() => setHidden((v) => !v)} hitSlop={8}>
+          <Pressable
+            onPress={() => setHidden((v) => !v)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
+          >
             <Icon name="eye" size={16} color={colors.mutedSoft} strokeWidth={1.6} />
           </Pressable>
         ) : null}

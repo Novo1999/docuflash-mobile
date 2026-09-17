@@ -21,7 +21,7 @@ approved support and monitoring plan.
 | Phase | Outcome | Main tasks | Exit criteria | Status |
 | --- | --- | --- | --- | --- |
 | 1. Release audit | Baseline is understood | Verify Expo/Android config, dependencies, permissions, backend URLs, and legal/data flows | No unknown release blockers | 🟡 Implementation audit complete; owner actions remain |
-| 2. App identity & quality | The installable app is polished | Set immutable package name, versioning, icons, error states, and accessibility; test main user journeys | QA checklist passes on physical devices | ⬜ |
+| 2. App identity & quality | The installable app is polished | Set immutable package name, versioning, icons, error states, and accessibility; test main user journeys | QA checklist passes on physical devices | 🟡 Static work complete; device QA pending |
 | 3. Compliance & store assets | Play Console information is ready | Privacy policy, Data safety, content rating, app access, declarations, listing copy, screenshots | Every answer is evidence-backed and assets are approved | ⬜ |
 | 4. Release build | Signed upload artifact is reproducible | Configure EAS production profile and credentials; produce and archive an Android App Bundle | Build is an `.aab` with correct package/version code | ⬜ |
 | 5. Internal testing | A real Play-distributed build is validated | Upload to Internal testing, invite testers, collect and fix issues | Sign-off from testers and release owner | ⬜ |
@@ -64,11 +64,13 @@ approved support and monitoring plan.
 
 ## Phase 2 — product and QA readiness
 
-- [ ] Set a user-facing release version in `expo.version` (for example
+- [x] App identity, icon configuration, shared accessibility semantics, and
+  static verification are recorded in [docs/PLAY_STORE_PHASE_2_QA.md](docs/PLAY_STORE_PHASE_2_QA.md).
+- [x] Set a user-facing release version in `expo.version` (for example
   `1.0.0`) and set `android.versionCode` to a positive integer. Increment
   `android.versionCode` for **every** uploaded Android build, including testing
   builds; Play will reject reused codes.
-- [ ] Add final production branding: app name, high-resolution launcher icon,
+- [x] Add final production branding: app name, high-resolution launcher icon,
   adaptive icon foreground/background, splash screen, and any Android 12+
   presentation. Verify these on a real device, not only in a simulator.
 - [ ] Validate the first-run experience, sign up/sign in/sign out, password

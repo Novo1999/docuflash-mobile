@@ -12,6 +12,7 @@ export function IconButton({
   strokeWidth = 1.7,
   disabled = false,
   style,
+  accessibilityLabel,
 }: {
   name: IconName
   onPress?: () => void
@@ -22,8 +23,10 @@ export function IconButton({
   strokeWidth?: number
   disabled?: boolean
   style?: ViewStyle
+  accessibilityLabel?: string
 }) {
   const { colors, radii } = useTheme()
+  const hitSlop = Math.max(0, (48 - size) / 2)
 
   const toneStyle: ViewStyle =
     tone === 'filled'
@@ -41,6 +44,10 @@ export function IconButton({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      hitSlop={hitSlop}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? name.replace(/-/g, ' ')}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         {
           width: size,

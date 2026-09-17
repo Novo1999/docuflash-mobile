@@ -17,6 +17,9 @@ export function DangerActionButton({ icon, label, onPress, disabled, style }: Da
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',

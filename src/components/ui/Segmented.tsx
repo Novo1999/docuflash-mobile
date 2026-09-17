@@ -23,6 +23,10 @@ export function Segmented<T extends string>({
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
+            hitSlop={{ top: 8, bottom: 8 }}
+            accessibilityRole="radio"
+            accessibilityLabel={opt.label}
+            accessibilityState={{ selected: active }}
             style={{
               flex: 1,
               flexDirection: 'row',
