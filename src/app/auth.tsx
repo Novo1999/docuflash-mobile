@@ -11,9 +11,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Alert, Pressable, View } from 'react-native'
+import { Alert, Linking, Pressable, View } from 'react-native'
 
 type Mode = 'signin' | 'signup'
+
+const PRIVACY_POLICY_URL = 'https://docuflash-frontend.vercel.app/privacy'
 
 export default function AuthScreen() {
   const { colors } = useTheme()
@@ -40,6 +42,14 @@ export default function AuthScreen() {
     setValue('mode', next)
     setError(null)
     clearErrors()
+  }
+
+  const openPrivacyPolicy = async () => {
+    try {
+      await Linking.openURL(PRIVACY_POLICY_URL)
+    } catch {
+      Alert.alert('Unable to open Privacy Policy', 'Please visit docuflash-frontend.vercel.app/privacy in your browser.')
+    }
   }
 
   const onSubmit = handleSubmit(async (values) => {
@@ -222,9 +232,19 @@ export default function AuthScreen() {
         <OAuthButton label="GitHub" icon onPress={() => onOAuth('github')} loading={oauthLoading === 'github'} />
       </View>
 
-      <AppText size={11} color={colors.mutedSoft} style={{ textAlign: 'center', marginTop: 28, lineHeight: 18 }}>
-        By continuing you agree to our Terms and Privacy Policy.
-      </AppText>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', marginTop: 28 }}>
+        <AppText size={11} color={colors.mutedSoft} style={{ lineHeight: 18 }}>
+          By continuing, you acknowledge the{' '}
+        </AppText>
+        <Pressable accessibilityRole="link" accessibilityLabel="Open Privacy Policy" accessibilityHint="Opens the Docuflash Privacy Policy in your browser" hitSlop={8} onPress={openPrivacyPolicy}>
+          <AppText size={11} weight="semibold" color={colors.accentText} style={{ lineHeight: 18 }}>
+            Privacy Policy
+          </AppText>
+        </Pressable>
+        <AppText size={11} color={colors.mutedSoft} style={{ lineHeight: 18 }}>
+          .
+        </AppText>
+      </View>
     </Screen>
   )
 }

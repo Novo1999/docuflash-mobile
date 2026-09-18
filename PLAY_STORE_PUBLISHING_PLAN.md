@@ -104,6 +104,10 @@ approved support and monitoring plan.
 
 ## Phase 3 — Play Console, policy, and assets
 
+**Status: 🟡 Local submission materials are prepared. Public policy and
+account-deletion resources, reviewer credentials, final screenshots, and the
+UGC policy decision/controls remain release gates.**
+
 - [ ] Create/verify the organization’s Google Play developer account. Use an
   organization-controlled Google account, enable two-step verification, and
   give least-privilege access to release staff. Complete any identity or
@@ -112,6 +116,10 @@ approved support and monitoring plan.
   listing. It must accurately explain collected/shared data, purposes,
   retention/deletion, security practices, user rights/contact, and each
   relevant third party. Keep it consistent with the actual app behavior.
+- [x] Prepare a draft listing pack and verified local visual assets in
+  [`docs/play-store/`](docs/play-store/) and
+  [`assets/play-store/`](assets/play-store/). Owner verification is still
+  required before any Console answer is submitted.
 - [ ] Prepare approved listing assets: app name, short description, full
   description, category, developer/support contact details, privacy-policy URL,
   app icon, feature graphic, and device screenshots. Capture screenshots from
