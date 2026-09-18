@@ -2,7 +2,7 @@ import { Icon } from '@/components/Icon'
 import { AppText, FileTypeBadge, IconButton } from '@/components/ui'
 import { formatFileSize } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
-import type { FileRecord } from '@/types/file'
+import type { CollectedFileRecord } from '@/types/folder'
 import { ActivityIndicator, Pressable, View } from 'react-native'
 
 export function CollectedFileRow({
@@ -10,11 +10,13 @@ export function CollectedFileRow({
   deleting,
   onOpen,
   onDelete,
+  onBlock,
 }: {
-  file: FileRecord
+  file: CollectedFileRecord
   deleting: boolean
   onOpen: () => void
   onDelete: () => void
+  onBlock?: () => void
 }) {
   const { colors } = useTheme()
 
@@ -29,6 +31,17 @@ export function CollectedFileRow({
           {formatFileSize(file.fileSize)}
         </AppText>
       </View>
+      {onBlock && !deleting ? (
+        <IconButton
+          name="block"
+          tone="plain"
+          size={30}
+          iconSize={16}
+          color={colors.mutedSoft}
+          onPress={onBlock}
+          accessibilityLabel={`Block whoever sent ${file.fileName}`}
+        />
+      ) : null}
       {deleting ? (
         <View style={{ width: 30, height: 30, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator size="small" color={colors.danger} />

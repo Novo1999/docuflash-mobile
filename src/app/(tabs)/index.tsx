@@ -383,7 +383,7 @@ function UploadScreenContent({ user }: { user: AuthUser | null }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12 }}>
         <Icon name="lock" size={12} color={colors.mutedSoft} strokeWidth={1.8} />
         <AppText size={10.5} color={colors.mutedSoft}>
-          End-to-end encrypted · Auto-deletes on expiry
+          Encrypted storage · Auto-deletes on expiry
         </AppText>
       </View>
 

@@ -2,6 +2,7 @@ import { OAuthButton } from '@/components/auth'
 import { Icon } from '@/components/Icon'
 import { AppText, Button, Field, Segmented } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
+import { PRIVACY_POLICY_URL, TERMS_OF_USE_URL } from '@/constants/legal'
 import { ApiError } from '@/lib/api/client'
 import { authSchema, type AuthFormValues } from '@/lib/validation/auth'
 import { useAuth } from '@/state/AuthProvider'
@@ -14,8 +15,6 @@ import { Controller, useForm } from 'react-hook-form'
 import { Alert, Linking, Pressable, View } from 'react-native'
 
 type Mode = 'signin' | 'signup'
-
-const PRIVACY_POLICY_URL = 'https://docuflash-frontend.vercel.app/privacy'
 
 export default function AuthScreen() {
   const { colors } = useTheme()
@@ -48,7 +47,15 @@ export default function AuthScreen() {
     try {
       await Linking.openURL(PRIVACY_POLICY_URL)
     } catch {
-      Alert.alert('Unable to open Privacy Policy', 'Please visit docuflash-frontend.vercel.app/privacy in your browser.')
+      Alert.alert('Unable to open Privacy Policy', `Please visit ${PRIVACY_POLICY_URL} in your browser.`)
+    }
+  }
+
+  const openTermsOfUse = async () => {
+    try {
+      await Linking.openURL(TERMS_OF_USE_URL)
+    } catch {
+      Alert.alert('Unable to open Terms of Use', `Please visit ${TERMS_OF_USE_URL} in your browser.`)
     }
   }
 
@@ -234,7 +241,16 @@ export default function AuthScreen() {
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', marginTop: 28 }}>
         <AppText size={11} color={colors.mutedSoft} style={{ lineHeight: 18 }}>
-          By continuing, you acknowledge the{' '}
+          By continuing, you agree to the{' '}
+        </AppText>
+        <Pressable accessibilityRole="link" accessibilityLabel="Open Terms of Use" accessibilityHint="Opens the Docuflash Terms of Use in your browser" hitSlop={8} onPress={openTermsOfUse}>
+          <AppText size={11} weight="semibold" color={colors.accentText} style={{ lineHeight: 18 }}>
+            Terms of Use
+          </AppText>
+        </Pressable>
+        <AppText size={11} color={colors.mutedSoft} style={{ lineHeight: 18 }}>
+          {' '}
+          and acknowledge the{' '}
         </AppText>
         <Pressable accessibilityRole="link" accessibilityLabel="Open Privacy Policy" accessibilityHint="Opens the Docuflash Privacy Policy in your browser" hitSlop={8} onPress={openPrivacyPolicy}>
           <AppText size={11} weight="semibold" color={colors.accentText} style={{ lineHeight: 18 }}>

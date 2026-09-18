@@ -6,13 +6,14 @@ import { MAX_REQUEST_UPLOAD_FILE_SIZE_BYTES, MAX_REQUEST_UPLOAD_FILE_SIZE_MB, MA
 import { useRequestRealtime, type UploadingPayload } from '@/hooks/useRequestRealtime'
 import { deleteFileByShareToken, deleteUploadedStorageFile } from '@/lib/api/files'
 import { getFolderByShareToken, unlockFolderByShareToken, uploadToRequest } from '@/lib/api/folder'
+import { blockSender } from '@/lib/api/moderation'
 import { formatExpiry, getClientId, getDeviceInfo, resolveFileType, type PickedFile } from '@/lib/upload'
 import { toUploadFile, totalProgressToPercent, uploadFiles } from '@/lib/uploadthing'
 import { useAuth } from '@/state/AuthProvider'
 import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { useTheme } from '@/theme/ThemeProvider'
 import { FileAccessType, FileType, type FileRecord } from '@/types/file'
-import type { FolderRecord, RequestFileUpload } from '@/types/folder'
+import type { CollectedFileRecord, FolderRecord, RequestFileUpload } from '@/types/folder'
 import * as DocumentPicker from 'expo-document-picker'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSetAtom } from 'jotai'
@@ -42,6 +43,9 @@ export default function RequestUploadScreen() {
 
   const [pendingDelete, setPendingDelete] = useState<FileRecord | null>(null)
   const [deletingToken, setDeletingToken] = useState<string | null>(null)
+  const [clientId, setClientId] = useState<string | null>(null)
+  const [pendingBlock, setPendingBlock] = useState<CollectedFileRecord | null>(null)
+  const [blocking, setBlocking] = useState(false)
 
   // Progress per picked file, keyed by the index it holds in `files`.
   const [fileProgress, setFileProgress] = useState<Record<number, number>>({})
@@ -55,12 +59,12 @@ export default function RequestUploadScreen() {
   const refetch = useCallback(async () => {
     if (!shareToken) return
     try {
-      const res = folderPassword ? await unlockFolderByShareToken(shareToken, folderPassword) : await getFolderByShareToken(shareToken)
+      const res = folderPassword ? await unlockFolderByShareToken(shareToken, folderPassword) : await getFolderByShareToken(shareToken, clientId ?? undefined)
       setFolder(res)
     } catch {
       // keep the current list if a refetch fails
     }
-  }, [shareToken, folderPassword])
+  }, [shareToken, folderPassword, clientId])
 
   const onUnlock = async (password: string) => {
     if (!shareToken || !password) return
@@ -81,7 +85,9 @@ export default function RequestUploadScreen() {
     if (!shareToken) return
     ;(async () => {
       try {
-        const res = await getFolderByShareToken(shareToken)
+        const ownClientId = await getClientId()
+        setClientId(ownClientId)
+        const res = await getFolderByShareToken(shareToken, ownClientId)
         if (!res.acceptsUploads) {
           setNotFound(true)
         } else {
@@ -227,6 +233,23 @@ export default function RequestUploadScreen() {
     }
   }
 
+  const onBlockSender = async () => {
+    if (!pendingBlock?.senderClientId || !folder?.id) return
+
+    setBlocking(true)
+    setError(null)
+
+    try {
+      await blockSender({ folderId: folder.id, senderClientId: pendingBlock.senderClientId, ownerClientId: clientId ?? undefined })
+      setPendingBlock(null)
+      await refetch()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not block that sender. Please try again.')
+    } finally {
+      setBlocking(false)
+    }
+  }
+
   if (loading) {
     return (
       <Screen contentStyle={{ alignItems: 'center', justifyContent: 'center' }}>
@@ -369,6 +392,7 @@ export default function RequestUploadScreen() {
               deleting={deletingToken === file.shareToken}
               onOpen={() => router.push(`/share/${file.shareToken}`)}
               onDelete={() => setPendingDelete(file)}
+              onBlock={folder.isRequestOwner && file.senderClientId ? () => setPendingBlock(file) : undefined}
             />
           ))
         ) : (
@@ -394,6 +418,18 @@ export default function RequestUploadScreen() {
         confirmLabel="Delete"
         onConfirm={onDeleteFile}
         onClose={() => setPendingDelete(null)}
+      />
+
+      <ConfirmModal
+        visible={pendingBlock !== null}
+        icon="block"
+        tone="danger"
+        title="Block this sender?"
+        message={pendingBlock ? `Whoever uploaded "${pendingBlock.fileName}" will no longer be able to upload to this link. Files they already sent stay until you delete them.` : undefined}
+        confirmLabel="Block"
+        loading={blocking}
+        onConfirm={onBlockSender}
+        onClose={() => setPendingBlock(null)}
       />
     </Screen>
   )

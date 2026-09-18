@@ -53,12 +53,26 @@ app as well as Play Console.
 | Target audience and children's-data posture | Product + legal owner | `[REQUIRED]` |
 | Rights/deletion request procedure and timing | Privacy/legal owner | `[REQUIRED]` |
 
-## In-app implementation gap
+## In-app implementation gap — closed
 
-`src/app/auth.tsx` presently says, “By continuing you agree to our Terms and
-Privacy Policy,” but the sentence is not a verified link and there is no
-affirmative, versioned policy acceptance. Add working policy links and, if the
-legal/product decision requires consent, an explicit recordable consent action
-before relying on that statement.
+`src/app/auth.tsx` now links both the Terms of Use and the Privacy Policy as
+working links, and versioned Terms acceptance is recorded against the account
+(`termsAcceptedAt` / `termsVersion`, surfaced through `POST /api/auth/accept-terms`).
+Users whose accepted version is stale are prompted by `TermsAcceptanceGate`
+before they can keep using the app.
+
+Remaining: verify both links open from a release build on a physical device,
+and confirm `/terms` is deployed. As of 2026-09-18, `/privacy` and
+`/delete-account` return 200 in production; `/terms` is written but **not yet
+deployed** (404).
+
+## Accuracy correction applied
+
+The mobile and web clients previously claimed **“End-to-end encrypted”** on the
+upload, success, share, and folder surfaces. Docuflash encrypts storage keys
+server-side with a master key, so the service can decrypt content — that is not
+end-to-end encryption, and the claim contradicted both this checklist and the
+store-listing guidance. All five occurrences now read “Encrypted storage”.
+Do not reintroduce the stronger claim without an architecture that supports it.
 
 Reference: [Google Play privacy policy requirement](https://support.google.com/googleplay/android-developer/answer/9859455?hl=en-GB).

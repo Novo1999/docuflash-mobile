@@ -104,9 +104,25 @@ approved support and monitoring plan.
 
 ## Phase 3 — Play Console, policy, and assets
 
-**Status: 🟡 Local submission materials are prepared. Public policy and
-account-deletion resources, reviewer credentials, final screenshots, and the
-UGC policy decision/controls remain release gates.**
+**Status: 🟡 Submission materials prepared; UGC decision resolved and controls
+implemented. Remaining gates: deploy the UGC controls, reviewer credentials,
+final screenshots, and the owner declarations.**
+
+- [x] **UGC policy decision made: the policy applies.** Reasoning and evidence
+  in [docs/play-store/UGC_POLICY_STUDY.md](docs/play-store/UGC_POLICY_STUDY.md).
+- [x] Implemented the required controls — Terms of Use with defined prohibited
+  content, versioned in-app Terms acceptance, in-app reporting on mobile and
+  web, file-request sender blocking, and a published abuse contact. Control
+  matrix in [docs/play-store/APP_CONTENT_AND_UGC_GATE.md](docs/play-store/APP_CONTENT_AND_UGC_GATE.md).
+- [x] Documented the moderation/takedown process in
+  [docs/play-store/MODERATION_RUNBOOK.md](docs/play-store/MODERATION_RUNBOOK.md).
+- [x] Removed the unsubstantiated "End-to-end encrypted" claim from all five
+  client surfaces; it now reads "Encrypted storage".
+- [ ] Deploy the UGC controls and verify them on a release build —
+  [docs/play-store/UGC_CONTROLS_DEPLOYMENT.md](docs/play-store/UGC_CONTROLS_DEPLOYMENT.md).
+- [ ] Name the moderation owner and commit to the triage process.
+- [ ] Close or explicitly accept the known gaps listed in the runbook (no web
+  block control, no report notification, no nearby-device blocking).
 
 - [ ] Create/verify the organization’s Google Play developer account. Use an
   organization-controlled Google account, enable two-step verification, and

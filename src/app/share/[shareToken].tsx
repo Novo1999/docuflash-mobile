@@ -1,4 +1,5 @@
 import { Icon } from '@/components/Icon'
+import { ReportContentButton } from '@/components/moderation'
 import { DetailRow } from '@/components/share'
 import { AppText, Button, Field, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
@@ -249,9 +250,11 @@ export default function SharedFileScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 18 }}>
         <Icon name="lock" size={12} color={colors.mutedSoft} strokeWidth={1.8} />
         <AppText size={10.5} color={colors.mutedSoft}>
-          End-to-end encrypted · Auto-deletes on expiry
+          Encrypted storage · Auto-deletes on expiry
         </AppText>
       </View>
+
+      <ReportContentButton targetType="file" shareToken={file.shareToken} targetName={file.fileName} />
     </Screen>
   )
 }

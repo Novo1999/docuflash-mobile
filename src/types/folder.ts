@@ -15,9 +15,14 @@ export type FolderRecord = {
   createdAt: string
   expireAt?: string
   accessType: FileAccessType
-  files: FileRecord[]
+  files: CollectedFileRecord[]
   id: string
   acceptsUploads?: boolean
+  isRequestOwner?: boolean
+}
+
+export type CollectedFileRecord = FileRecord & {
+  senderClientId?: string
 }
 
 export type CreateUploadRequestPayload = {

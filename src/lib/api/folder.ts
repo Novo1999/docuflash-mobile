@@ -38,8 +38,9 @@ export async function getMyFolders(search?: string): Promise<MyFolderRecord[]> {
   return requireApiData(response, 'Failed to load your folders')
 }
 
-export async function getFolderByShareToken(token: string): Promise<FolderRecord> {
-  const response = await apiClient<FolderRecord>(`/api/folders/token/${token}`)
+export async function getFolderByShareToken(token: string, clientId?: string): Promise<FolderRecord> {
+  const query = clientId ? `?clientId=${encodeURIComponent(clientId)}` : ''
+  const response = await apiClient<FolderRecord>(`/api/folders/token/${token}${query}`)
   return requireApiData(response, 'Failed to fetch folder')
 }
 

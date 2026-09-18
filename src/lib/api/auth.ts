@@ -57,6 +57,11 @@ export async function getCurrentUser(): Promise<AuthUser> {
   return requireApiData(response, 'Failed to load your profile')
 }
 
+export async function acceptTerms(): Promise<AuthUser> {
+  const response = await apiClient<AuthUser>('/api/auth/accept-terms', { method: 'POST' })
+  return requireApiData(response, 'Could not record your acceptance')
+}
+
 export async function updateProfile(payload: UpdateProfilePayload): Promise<AuthUser> {
   const response = await apiClient<AuthUser>('/api/auth/me', { method: 'PATCH', body: payload })
   return requireApiData(response, 'Failed to update your profile')

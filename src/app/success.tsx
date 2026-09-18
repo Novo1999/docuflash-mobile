@@ -185,7 +185,7 @@ export default function SuccessScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 'auto', paddingTop: 18 }}>
         <Icon name="lock" size={12} color={colors.mutedSoft} strokeWidth={1.8} />
         <AppText size={10.5} color={colors.mutedSoft}>
-          End-to-end encrypted · Auto-deletes on expiry
+          Encrypted storage · Auto-deletes on expiry
         </AppText>
       </View>
     </Screen>

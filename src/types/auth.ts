@@ -9,6 +9,9 @@ export type AuthUser = {
   provider: AuthProviderName
   defaultExpiry?: string
   defaultPrivacy?: 'public' | 'protected'
+  termsAcceptedAt: string | null
+  termsVersion: string | null
+  currentTermsVersion?: string
   createdAt: string
   updatedAt: string
 }

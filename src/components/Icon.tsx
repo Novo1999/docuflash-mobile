@@ -33,6 +33,9 @@ export type IconName =
   | 'note'
   | 'edit'
   | 'wifi'
+  | 'flag'
+  | 'block'
+  | 'shield'
 
 type MaterialName = ComponentProps<typeof MaterialCommunityIcons>['name']
 
@@ -69,6 +72,9 @@ const GLYPHS: Record<IconName, MaterialName> = {
   note: 'note-text-outline',
   edit: 'pencil-outline',
   wifi: 'wifi',
+  flag: 'flag-outline',
+  block: 'account-cancel-outline',
+  shield: 'shield-check-outline',
 }
 
 type IconProps = {

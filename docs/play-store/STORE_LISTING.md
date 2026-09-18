@@ -20,7 +20,8 @@ unlimited storage, or anonymous sharing unless they can be substantiated.
 | Ads | Proposed: No | Attest only after verifying the release build, remote content, and backend do not show ads. |
 | Developer email | `[REQUIRED: monitored support email]` | Must be organization-controlled and actively monitored. |
 | Developer website | `https://docuflash-frontend.vercel.app` | Keep only if it is organization-controlled and presents current support/product information. |
-| Privacy policy | `[BLOCKER: public HTTPS privacy-policy URL]` | Must be live, publicly accessible without an account, and also linked from the app. |
+| Privacy policy | `https://docuflash-frontend.vercel.app/privacy` | Live and reachable signed out (verified 2026-09-18, HTTP 200); linked from the app's auth screen. Confirm again immediately before submission. |
+| Terms of Use | `https://docuflash-frontend.vercel.app/terms` | **Blocker:** written and linked in-app, but not yet deployed (404 as of 2026-09-18). Required for the UGC declaration. |
 
 ## Full description
 
@@ -38,6 +39,7 @@ With Docuflash, you can:
 - Open received document links in the app
 - Create file-request links and share them with a QR code
 - Review your uploads and manage your account from one place
+- Report content that breaks the rules, and block unwanted senders on a file request
 
 Create an account to manage uploads and requests. Password-protected links
 require the sender’s password to open. Link availability depends on the

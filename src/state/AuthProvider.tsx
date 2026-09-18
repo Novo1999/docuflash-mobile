@@ -1,4 +1,5 @@
 import {
+  acceptTerms as acceptTermsApi,
   deleteAccount as deleteAccountApi,
   getCurrentUser,
   loginUser,
@@ -17,6 +18,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 type AuthContextValue = {
   user: AuthUser | null
   status: AuthStatus
+  needsTermsAcceptance: boolean
   login: (payload: LoginPayload) => Promise<void>
   loginWithGoogle: () => Promise<{ cancelled: boolean }>
   loginWithOAuth: (provider: OAuthProvider) => Promise<{ cancelled: boolean }>
@@ -26,6 +28,7 @@ type AuthContextValue = {
   deleteAccount: () => Promise<void>
   refreshUser: () => Promise<void>
   updateProfile: (payload: UpdateProfilePayload) => Promise<void>
+  acceptTerms: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -136,9 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(updated)
   }
 
+  const acceptTerms: AuthContextValue['acceptTerms'] = async () => {
+    const updated = await acceptTermsApi()
+    setUser(updated)
+  }
+
+  const needsTermsAcceptance = Boolean(user) && (!user?.termsAcceptedAt || (Boolean(user?.currentTermsVersion) && user?.termsVersion !== user?.currentTermsVersion))
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, login, loginWithGoogle, loginWithOAuth, register, completePasswordReset, logout, deleteAccount, refreshUser, updateProfile }),
-    [user, status],
+    () => ({ user, status, needsTermsAcceptance, login, loginWithGoogle, loginWithOAuth, register, completePasswordReset, logout, deleteAccount, refreshUser, updateProfile, acceptTerms }),
+    [user, status, needsTermsAcceptance],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
