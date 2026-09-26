@@ -135,27 +135,36 @@ function UploadScreenContent({ user }: { user: AuthUser | null }) {
         <AppText variant="heading" size={21} color={colors.heading}>
           Docuflash
         </AppText>
-        <View
-          style={{
-            width: 34,
-            height: 34,
-            borderRadius: 17,
-            backgroundColor: colors.primaryBg,
-            borderWidth: 2,
-            borderColor: colors.accent,
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
+        <Pressable
+          onPress={() => router.navigate('/profile')}
+          accessibilityRole="button"
+          accessibilityLabel="Open profile"
+          accessibilityHint="Opens your profile and settings"
+          hitSlop={8}
+          style={({ pressed }) => ({ borderRadius: 17, opacity: pressed ? 0.75 : 1 })}
         >
-          {user?.avatarUrl ? (
-            <Image source={{ uri: user.avatarUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
-          ) : (
-            <AppText weight="semibold" size={13} color={colors.primaryText}>
-              {initial}
-            </AppText>
-          )}
-        </View>
+          <View
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 17,
+              backgroundColor: colors.primaryBg,
+              borderWidth: 2,
+              borderColor: colors.accent,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            {user?.avatarUrl ? (
+              <Image source={{ uri: user.avatarUrl }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+            ) : (
+              <AppText weight="semibold" size={13} color={colors.primaryText}>
+                {initial}
+              </AppText>
+            )}
+          </View>
+        </Pressable>
       </View>
 
       <AppText variant="heading" size={26} color={colors.heading} lineHeight={36} style={{ marginTop: 22 }}>
