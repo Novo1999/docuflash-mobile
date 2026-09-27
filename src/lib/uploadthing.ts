@@ -1,3 +1,8 @@
+// Initialize the same URL constructor used by Supabase before UploadThing caches
+// its endpoint. A later polyfill swap breaks its instanceof URL check and makes
+// it access window.location.origin, which is unavailable on native.
+import 'react-native-url-polyfill/auto'
+
 import { BASE_URL } from '@/constants/api'
 import { logApiError, logApiRequest, logApiResponse } from '@/lib/logger'
 import { generateReactNativeHelpers } from '@uploadthing/expo'
