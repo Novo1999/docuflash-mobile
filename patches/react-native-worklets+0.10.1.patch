@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-worklets/android/src/main/java/com/swmansion/worklets/ScriptBufferWrapper.kt b/node_modules/react-native-worklets/android/src/main/java/com/swmansion/worklets/ScriptBufferWrapper.kt
+--- a/node_modules/react-native-worklets/android/src/main/java/com/swmansion/worklets/ScriptBufferWrapper.kt
++++ b/node_modules/react-native-worklets/android/src/main/java/com/swmansion/worklets/ScriptBufferWrapper.kt
+@@ -37,6 +37,10 @@ class ScriptBufferWrapper(
+                     val assetURL = uri.substring(assetsPrefix.length)
+                     initHybridFromAssets(assetManager, assetURL)
+                 }
++                // Expo Updates supplies downloaded bundles as absolute paths.
++                uri.startsWith("/") -> {
++                    initHybridFromFile(uri)
++                }
+                 else -> {
+                     val scriptContent =
+                         try {
