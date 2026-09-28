@@ -1,0 +1,27 @@
+APP NAME
+Docuflash - Share Privately
+
+SHORT DESCRIPTION
+Share documents with password-protected links, expiry dates and file requests
+
+FULL DESCRIPTION
+Share documents from your phone with links you control.
+
+Docuflash helps you send files, add password protection and choose when a shared link expires. Need documents from someone else? Create a file request and share its link or QR code.
+
+SHARE DOCUMENTS
+Upload PDFs, Word documents, spreadsheets, ZIP archives and text files. Create a link to share with your recipients.
+
+CONTROL ACCESS
+Choose public or password-protected access. Set an expiry time using a preset or choose a custom date and time.
+
+REQUEST FILES
+Create an upload request so others can send files to you. Share the request through a link or QR code, with optional password protection.
+
+MANAGE YOUR UPLOADS
+Browse and search your uploaded files and folders. Copy share links, check download counts and delete uploads you no longer need.
+
+OPEN SHARED FILES
+Open received document and folder links in Docuflash. Enter the sender's password when a link is protected, then access the shared files.
+
+Create an account to manage uploads and requests. An internet connection is required to upload and access shared files. Shared links remain available according to their expiry and access settings.

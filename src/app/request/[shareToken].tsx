@@ -8,9 +8,10 @@ import { deleteFileByShareToken, deleteUploadedStorageFile } from '@/lib/api/fil
 import { getFolderByShareToken, unlockFolderByShareToken, uploadToRequest } from '@/lib/api/folder'
 import { blockSender } from '@/lib/api/moderation'
 import { formatExpiry, getClientId, getDeviceInfo, resolveFileType, type PickedFile } from '@/lib/upload'
+import { finishUploadNotification, startUploadNotification, updateUploadNotification } from '@/lib/uploadNotificationKit'
 import { toUploadFile, totalProgressToPercent, uploadFiles } from '@/lib/uploadthing'
 import { useAuth } from '@/state/AuthProvider'
-import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
+import { invalidateMyUploadsAtom, isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { useTheme } from '@/theme/ThemeProvider'
 import { FileAccessType, FileType, type FileRecord } from '@/types/file'
 import type { CollectedFileRecord, FolderRecord, RequestFileUpload } from '@/types/folder'
@@ -28,6 +29,7 @@ export default function RequestUploadScreen() {
 
   const setIsUploading = useSetAtom(isUploadingAtom)
   const setProgress = useSetAtom(uploadProgressAtom)
+  const invalidateMyUploads = useSetAtom(invalidateMyUploadsAtom)
 
   const [folder, setFolder] = useState<FolderRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -149,9 +151,11 @@ export default function RequestUploadScreen() {
 
     const uploaderName = user?.displayName ?? null
     const representativeName = selected.length > 1 ? `${selected.length} files` : selected[0].name
-    broadcastUploading({ fileName: representativeName, uploaderName, progress: 0 })
+    let uploadCompleted = false
 
     try {
+      await startUploadNotification(selected.length)
+      broadcastUploading({ fileName: representativeName, uploaderName, progress: 0 })
       const clientId = await getClientId()
       const deviceInfo = getDeviceInfo()
       const uploadables = await Promise.all(selected.map((f) => toUploadFile(f)))
@@ -168,6 +172,7 @@ export default function RequestUploadScreen() {
           // Rounded so the atom bails out instead of re-rendering on every XHR tick.
           const totalPercent = Math.round(totalProgressToPercent(totalProgress))
           setProgress(totalPercent)
+          updateUploadNotification(totalPercent)
 
           // The channel is shared and progress events are frequent, so only tell
           // the watcher about meaningful jumps.
@@ -178,6 +183,7 @@ export default function RequestUploadScreen() {
         },
       })
       setProgress(100)
+      updateUploadNotification(100)
       setFileProgress(Object.fromEntries(selected.map((_, index) => [index, 100])))
 
       if (!uploaded || uploaded.length !== withTypes.length) {
@@ -203,9 +209,12 @@ export default function RequestUploadScreen() {
       await refetch()
       broadcastComplete()
       setFiles([])
+      invalidateMyUploads()
+      uploadCompleted = true
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Upload failed. Please try again.')
     } finally {
+      finishUploadNotification(uploadCompleted)
       setUploading(false)
       setIsUploading(false)
       setProgress(0)

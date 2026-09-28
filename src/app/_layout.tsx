@@ -1,5 +1,6 @@
 import { RootNavigator } from '@/components/navigation'
 import { configureGoogleSignin } from '@/lib/googleSignin'
+import { initializeUploadNotifications } from '@/lib/uploadNotificationKit'
 import { AuthProvider } from '@/state/AuthProvider'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from '@expo-google-fonts/dm-sans'
@@ -14,6 +15,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 SplashScreen.preventAutoHideAsync()
 configureGoogleSignin()
+initializeUploadNotifications()
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({

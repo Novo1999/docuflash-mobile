@@ -68,6 +68,18 @@
     "plugins": [
       "expo-router",
       [
+        "react-native-notify-kit",
+        {
+          "android": {
+            "foregroundService": {
+              "types": [
+                "dataSync"
+              ]
+            }
+          }
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/docuflash-adaptive-foreground-v2.png",

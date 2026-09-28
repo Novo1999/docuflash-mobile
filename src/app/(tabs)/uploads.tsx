@@ -6,11 +6,13 @@ import { useFileDrag } from '@/hooks/useFileDrag'
 import { deleteFileByShareToken, getMyFiles } from '@/lib/api/files'
 import { deleteFolderByShareToken, getMyFolders, moveFileToFolder } from '@/lib/api/folder'
 import { getFolderShareLink, getShareLink } from '@/lib/upload'
+import { myUploadsRevisionAtom } from '@/state/uploadAtoms'
 import { useTheme } from '@/theme/ThemeProvider'
 import type { MyFileRecord } from '@/types/file'
 import type { MyFolderRecord } from '@/types/folder'
 import * as Clipboard from 'expo-clipboard'
 import { useFocusEffect, useRouter } from 'expo-router'
+import { useAtomValue } from 'jotai'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, FlatList, Pressable, RefreshControl, TextInput, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -26,22 +28,27 @@ export default function UploadsScreen() {
   const [pendingDelete, setPendingDelete] = useState<{ type: 'file' | 'folder'; token: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [foldersVersion, setFoldersVersion] = useState(0)
+  const myUploadsRevision = useAtomValue(myUploadsRevisionAtom)
+  const latestLoad = useRef(0)
 
   const load = useCallback(async (search?: string) => {
+    const loadId = ++latestLoad.current
     try {
       const [f, d] = await Promise.all([getMyFiles(search), getMyFolders(search)])
+      if (loadId !== latestLoad.current) return
       setFiles(f)
       setFolders(d)
     } catch {
       // surface nothing destructive; list simply stays empty
     } finally {
+      if (loadId !== latestLoad.current) return
       setLoading(false)
       setRefreshing(false)
     }
   }, [])
 
   // Debounced server-side search; also handles the initial load (empty query).
-  useDebouncedEffect(() => load(query), [query, load], 300)
+  useDebouncedEffect(() => load(query), [query, load, myUploadsRevision], 300)
 
   // Refresh when returning to the screen (e.g. after an upload/delete elsewhere).
   // The first focus is skipped — the debounced effect above already loads on mount.

@@ -2,8 +2,9 @@ import { DEFAULT_UPLOAD_FOLDER_NAME, MAX_UPLOAD_FILES } from '@/constants/upload
 import { deleteFileByShareToken, deleteUploadedStorageFile, uploadFile } from '@/lib/api/files'
 import { createFolder } from '@/lib/api/folder'
 import { getClientId, getDeviceInfo, getFolderShareLink, getShareLink, resolveFileType, type PickedFile } from '@/lib/upload'
+import { finishUploadNotification, startUploadNotification, updateUploadNotification } from '@/lib/uploadNotificationKit'
 import { toUploadFile, totalProgressToPercent, uploadFiles } from '@/lib/uploadthing'
-import { isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
+import { invalidateMyUploadsAtom, isUploadingAtom, uploadProgressAtom } from '@/state/uploadAtoms'
 import { FileAccessType, type UploadedShareLink } from '@/types/file'
 import { useAtomValue, useSetAtom } from 'jotai'
 
@@ -25,6 +26,7 @@ export function useUploadSubmit() {
   const isUploading = useAtomValue(isUploadingAtom)
   const setIsUploading = useSetAtom(isUploadingAtom)
   const setProgress = useSetAtom(uploadProgressAtom)
+  const invalidateMyUploads = useSetAtom(invalidateMyUploadsAtom)
 
   const submit = async (input: UploadInput): Promise<UploadOutput> => {
     const selected = input.files.slice(0, MAX_UPLOAD_FILES)
@@ -38,18 +40,25 @@ export function useUploadSubmit() {
 
     setIsUploading(true)
     setProgress(0)
-    const clientId = await getClientId()
-    const deviceInfo = getDeviceInfo()
-    const password = input.accessType === FileAccessType.PROTECTED ? input.password : undefined
+    let uploadCompleted = false
 
     try {
+      await startUploadNotification(selected.length)
+      const clientId = await getClientId()
+      const deviceInfo = getDeviceInfo()
+      const password = input.accessType === FileAccessType.PROTECTED ? input.password : undefined
       const uploadables = await Promise.all(selected.map((f) => toUploadFile(f)))
       const uploaded = await uploadFiles('fileUploader', {
         files: uploadables,
-        onUploadProgress: ({ totalProgress }) => setProgress(totalProgressToPercent(totalProgress)),
+        onUploadProgress: ({ totalProgress }) => {
+          const progress = totalProgressToPercent(totalProgress)
+          setProgress(progress)
+          updateUploadNotification(progress)
+        },
       })
       // Files are transferred; keep the bar full while we register metadata.
       setProgress(100)
+      updateUploadNotification(100)
 
       if (!uploaded || uploaded.length !== filesWithTypes.length) {
         throw new Error('Upload did not return every storage key')
@@ -92,7 +101,10 @@ export function useUploadSubmit() {
         }
 
         if (fileIds.length <= 1) {
-          return { links, lastShareToken: links[0]?.shareToken ?? null }
+          const result = { links, lastShareToken: links[0]?.shareToken ?? null }
+          invalidateMyUploads()
+          uploadCompleted = true
+          return result
         }
 
         const folder = await createFolder({
@@ -111,7 +123,10 @@ export function useUploadSubmit() {
           kind: 'folder',
           accessType: input.accessType,
         }
-        return { links: [folderLink], lastShareToken: folder.shareToken }
+        const result = { links: [folderLink], lastShareToken: folder.shareToken }
+        invalidateMyUploads()
+        uploadCompleted = true
+        return result
       } catch (metadataError) {
         await Promise.allSettled([
           ...createdShareTokens.map((token) => deleteFileByShareToken(token)),
@@ -120,6 +135,7 @@ export function useUploadSubmit() {
         throw metadataError
       }
     } finally {
+      finishUploadNotification(uploadCompleted)
       setIsUploading(false)
       setProgress(0)
     }
