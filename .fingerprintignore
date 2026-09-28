@@ -1,0 +1,7 @@
+# Native build output produced locally inside installed packages. These files are
+# disposable and do not exist in EAS's clean dependency install, so they must
+# not affect the runtime fingerprint.
+**/node_modules/**/android/build/**/*
+**/node_modules/**/android/.cxx/**/*
+**/node_modules/**/android/.gradle/**/*
+**/node_modules/**/ios/build/**/*
