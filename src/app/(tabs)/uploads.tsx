@@ -107,6 +107,7 @@ export default function UploadsScreen() {
       }
       setPendingDelete(null)
       load()
+      setFoldersVersion((version) => version + 1)
     } catch {
       Alert.alert('Delete failed', 'Something went wrong. Please try again.')
     } finally {
@@ -180,6 +181,7 @@ export default function UploadsScreen() {
                 drag={drag}
                 onCopy={() => copy(getFolderShareLink(item.shareToken))}
                 onDelete={() => confirmDeleteFolder(item.shareToken)}
+                onDeleteFile={confirmDeleteFile}
               />
             </DroppableFolderCard>
           ) : (
@@ -194,7 +196,7 @@ export default function UploadsScreen() {
               <FileCard
                 file={item}
                 onCopy={() => copy(getShareLink(item.shareToken))}
-                onOpen={() => router.push(`/share/${item.shareToken}`)}
+                onOpen={() => router.push({ pathname: '/share/[shareToken]', params: { shareToken: item.shareToken, manage: '1' } })}
                 onDelete={() => confirmDeleteFile(item.shareToken)}
               />
             </DraggableFileCard>

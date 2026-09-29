@@ -1,6 +1,6 @@
 import { RootNavigator } from '@/components/navigation'
 import { configureGoogleSignin } from '@/lib/googleSignin'
-import { initializeUploadNotifications } from '@/lib/uploadNotificationKit'
+import { initializeUploadNotifications, requestNotificationPermissionOnLaunch } from '@/lib/uploadNotificationKit'
 import { AuthProvider } from '@/state/AuthProvider'
 import { ThemeProvider } from '@/theme/ThemeProvider'
 import { DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold } from '@expo-google-fonts/dm-sans'
@@ -30,6 +30,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) SplashScreen.hideAsync()
+  }, [fontsLoaded])
+
+  useEffect(() => {
+    if (fontsLoaded) void requestNotificationPermissionOnLaunch()
   }, [fontsLoaded])
 
   if (!fontsLoaded) return <View style={{ flex: 1, backgroundColor: '#f5f0e8' }} />

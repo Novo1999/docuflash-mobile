@@ -1,7 +1,8 @@
 import { Icon } from '@/components/Icon'
 import { ReportContentButton } from '@/components/moderation'
-import { AppText, FileTypeBadge, Pill } from '@/components/ui'
+import { AppText, ConfirmModal, FileTypeBadge, IconButton, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
+import { deleteFileByShareToken } from '@/lib/api/files'
 import { getFolderByShareToken } from '@/lib/api/folder'
 import { formatExpiry, formatFileSize } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
@@ -9,16 +10,18 @@ import { FileAccessType } from '@/types/file'
 import type { FolderRecord } from '@/types/folder'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Pressable, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, View } from 'react-native'
 
 export default function SharedFolderScreen() {
   const { colors, radii } = useTheme()
   const router = useRouter()
-  const { shareToken } = useLocalSearchParams<{ shareToken: string }>()
+  const { shareToken, manage } = useLocalSearchParams<{ shareToken: string; manage?: string }>()
 
   const [folder, setFolder] = useState<FolderRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<{ shareToken: string; fileName: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!shareToken) return
@@ -57,6 +60,20 @@ export default function SharedFolderScreen() {
   }
 
   const isProtected = folder.accessType === FileAccessType.PROTECTED
+
+  const onDeleteFile = async () => {
+    if (!pendingDelete) return
+    setDeleting(true)
+    try {
+      await deleteFileByShareToken(pendingDelete.shareToken)
+      setFolder((current) => (current ? { ...current, files: current.files.filter((file) => file.shareToken !== pendingDelete.shareToken) } : current))
+      setPendingDelete(null)
+    } catch (e) {
+      Alert.alert('Delete failed', e instanceof Error ? e.message : 'Please try again.')
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   return (
     <Screen scroll contentStyle={{ alignItems: 'center', paddingHorizontal: 26 }}>
@@ -116,11 +133,11 @@ export default function SharedFolderScreen() {
         </AppText>
         {folder.files.length > 0 ? (
           folder.files.map((file) => (
-            <Pressable
-              key={file.id}
-              onPress={() => router.push(`/share/${file.shareToken}`)}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 9 }}
-            >
+            <View key={file.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+              <Pressable
+                onPress={() => router.push({ pathname: '/share/[shareToken]', params: { shareToken: file.shareToken, ...(manage === '1' ? { manage: '1' } : {}) } })}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 9 }}
+              >
               <FileTypeBadge type={file.fileType} size={38} radius={11} />
               <View style={{ flex: 1 }}>
                 <AppText weight="medium" size={13} numberOfLines={1}>
@@ -130,8 +147,10 @@ export default function SharedFolderScreen() {
                   {formatFileSize(file.fileSize)} · {file.downloadCount} downloads
                 </AppText>
               </View>
-              <Icon name="chevron-right" size={18} color={colors.mutedSoft} strokeWidth={2} />
-            </Pressable>
+                <Icon name="chevron-right" size={18} color={colors.mutedSoft} strokeWidth={2} />
+              </Pressable>
+              {manage === '1' ? <IconButton name="trash" tone="danger" onPress={() => setPendingDelete({ shareToken: file.shareToken, fileName: file.fileName })} accessibilityLabel={`Delete ${file.fileName}`} /> : null}
+            </View>
           ))
         ) : (
           <AppText size={12.5} color={colors.mutedSoft} style={{ paddingVertical: 9 }}>
@@ -148,6 +167,18 @@ export default function SharedFolderScreen() {
       </View>
 
       <ReportContentButton targetType="folder" shareToken={shareToken} targetName={folder.folderName} />
+
+      <ConfirmModal
+        visible={pendingDelete !== null}
+        icon="trash"
+        tone="danger"
+        title="Delete file?"
+        message={pendingDelete ? `"${pendingDelete.fileName}" and its share link will be permanently removed.` : undefined}
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={onDeleteFile}
+        onClose={() => setPendingDelete(null)}
+      />
     </Screen>
   )
 }

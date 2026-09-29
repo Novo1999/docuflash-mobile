@@ -1,14 +1,14 @@
 import { Icon } from '@/components/Icon'
 import { ReportContentButton } from '@/components/moderation'
 import { DetailRow } from '@/components/share'
-import { AppText, Button, Field, Pill } from '@/components/ui'
+import { AppText, Button, ConfirmModal, Field, Pill } from '@/components/ui'
 import { Screen } from '@/components/ui/Screen'
-import { getFileByShareToken, getFileDownloadUrl, getFilePreview, verifyFilePassword } from '@/lib/api/files'
+import { deleteFileByShareToken, getFileByShareToken, getFileDownloadUrl, getFilePreview, verifyFilePassword } from '@/lib/api/files'
 import { openFileInApp, openTextInApp, saveFileToDevice, shareFile, shareText } from '@/lib/files'
 import { formatExpiry, formatFileSize } from '@/lib/upload'
 import { useTheme } from '@/theme/ThemeProvider'
 import { FileAccessType, FileType, isPreviewableFileType, type FileRecord } from '@/types/file'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, View } from 'react-native'
 
@@ -23,7 +23,8 @@ const TYPE_LABEL: Record<FileType, string> = {
 
 export default function SharedFileScreen() {
   const { colors, radii } = useTheme()
-  const { shareToken } = useLocalSearchParams<{ shareToken: string }>()
+  const router = useRouter()
+  const { shareToken, manage } = useLocalSearchParams<{ shareToken: string; manage?: string }>()
 
   const [file, setFile] = useState<FileRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,6 +34,8 @@ export default function SharedFileScreen() {
   const [unlocking, setUnlocking] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (!shareToken) return
@@ -124,6 +127,20 @@ export default function SharedFileScreen() {
       Alert.alert('Download failed', e instanceof Error ? e.message : 'Please try again.')
     } finally {
       setBusy(false)
+    }
+  }
+
+  const onDelete = async () => {
+    if (!shareToken) return
+    setDeleting(true)
+    try {
+      await deleteFileByShareToken(shareToken)
+      setConfirmingDelete(false)
+      router.replace('/uploads')
+    } catch (e) {
+      Alert.alert('Delete failed', e instanceof Error ? e.message : 'Please try again.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -223,6 +240,7 @@ export default function SharedFileScreen() {
             <Button title="Download" icon="download" onPress={onDownload} loading={busy} style={{ flex: 1 }} />
           </View>
           <Button title="Share" variant="outline" icon="share" onPress={onShare} loading={busy} />
+          {manage === '1' ? <Button title="Delete file" variant="danger" icon="trash" onPress={() => setConfirmingDelete(true)} disabled={busy} /> : null}
         </View>
       )}
 
@@ -255,6 +273,18 @@ export default function SharedFileScreen() {
       </View>
 
       <ReportContentButton targetType="file" shareToken={file.shareToken} targetName={file.fileName} />
+
+      <ConfirmModal
+        visible={confirmingDelete}
+        icon="trash"
+        tone="danger"
+        title="Delete file?"
+        message={`"${file.fileName}" and its share link will be permanently removed.`}
+        confirmLabel="Delete"
+        loading={deleting}
+        onConfirm={onDelete}
+        onClose={() => setConfirmingDelete(false)}
+      />
     </Screen>
   )
 }

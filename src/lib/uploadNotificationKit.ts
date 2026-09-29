@@ -1,4 +1,4 @@
-import notifee, { AndroidImportance } from 'react-native-notify-kit'
+import notifee, { AndroidImportance, AuthorizationStatus } from 'react-native-notify-kit'
 import { Platform } from 'react-native'
 
 const CHANNEL_ID = 'docuflash_uploads'
@@ -6,6 +6,20 @@ const NOTIFICATION_ID = 'docuflash_upload'
 
 let notificationIsActive = false
 let foregroundServiceRegistered = false
+
+/** Requests notification access before the user starts their first upload. */
+export async function requestNotificationPermissionOnLaunch(): Promise<void> {
+  if (Platform.OS === 'web') return
+
+  try {
+    const settings = await notifee.getNotificationSettings()
+    if (settings.authorizationStatus === AuthorizationStatus.NOT_DETERMINED) {
+      await notifee.requestPermission()
+    }
+  } catch {
+    // Notification access is optional and must never block app startup.
+  }
+}
 
 /**
  * Must run before the first foreground-service notification is displayed.

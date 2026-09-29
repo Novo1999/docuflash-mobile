@@ -15,6 +15,7 @@ type FolderCardProps = {
   folder: MyFolderRecord
   onCopy: () => void
   onDelete: () => void
+  onDeleteFile: (shareToken: string) => void
   drag?: FileDragController
 }
 
@@ -25,7 +26,7 @@ const toDraggableFile = (file: FileRecord, folder: MyFolderRecord): MyFileRecord
   folders: [{ id: folder.id, folderName: folder.folderName }],
 })
 
-export function FolderCard({ folder, onCopy, onDelete, drag }: FolderCardProps) {
+export function FolderCard({ folder, onCopy, onDelete, onDeleteFile, drag }: FolderCardProps) {
   const { colors } = useTheme()
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -78,7 +79,10 @@ export function FolderCard({ folder, onCopy, onDelete, drag }: FolderCardProps) 
             </AppText>
           </View>
         </View>
-        <IconButton name="external" onPress={() => router.push(`/folder/${folder.shareToken}`)} />
+        <IconButton
+          name="external"
+          onPress={() => router.push({ pathname: '/folder/[shareToken]', params: { shareToken: folder.shareToken, manage: '1' } })}
+        />
         <IconButton name="copy" onPress={onCopy} style={{ marginLeft: 6 }} />
         <IconButton name="trash" tone="danger" onPress={onDelete} style={{ marginLeft: 6 }} />
       </Pressable>
@@ -90,10 +94,11 @@ export function FolderCard({ folder, onCopy, onDelete, drag }: FolderCardProps) 
           ) : children && children.length > 0 ? (
             children.map((file) => {
               const row = (
-                <Pressable
-                  onPress={() => router.push(`/share/${file.shareToken}`)}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 11 }}
-                >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+                  <Pressable
+                    onPress={() => router.push({ pathname: '/share/[shareToken]', params: { shareToken: file.shareToken, manage: '1' } })}
+                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 11 }}
+                  >
                   <FileTypeBadge type={file.fileType} size={32} radius={9} />
                   <View style={{ flex: 1 }}>
                     <AppText weight="medium" size={12.5} numberOfLines={1}>
@@ -103,8 +108,10 @@ export function FolderCard({ folder, onCopy, onDelete, drag }: FolderCardProps) 
                       {formatFileSize(file.fileSize)} · {file.downloadCount} downloads
                     </AppText>
                   </View>
-                  <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} />
-                </Pressable>
+                    <Icon name="chevron-right" size={16} color={colors.mutedSoft} strokeWidth={2} />
+                  </Pressable>
+                  <IconButton name="trash" tone="danger" onPress={() => onDeleteFile(file.shareToken)} accessibilityLabel={`Delete ${file.fileName}`} />
+                </View>
               )
               if (!drag) return <Fragment key={file.id}>{row}</Fragment>
               const draggableFile = toDraggableFile(file, folder)

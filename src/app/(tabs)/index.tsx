@@ -230,10 +230,7 @@ function UploadScreenContent({ user }: { user: AuthUser | null }) {
             <Icon name="upload" size={24} color={colors.accent} strokeWidth={1.6} />
           </View>
           <AppText weight="semibold" size={15} color={colors.text}>
-            Drop files or{' '}
-            <AppText weight="semibold" size={15} color={colors.accentText}>
-              browse
-            </AppText>
+            Tap to choose files
           </AppText>
           <AppText size={11.5} color={colors.mutedSoft} style={{ textAlign: 'center', lineHeight: 16 }}>
             PDF · DOCX · XLSX · ZIP · TXT{'\n'}Up to 5 files · 16 MB each
