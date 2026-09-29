@@ -1,151 +1,151 @@
 # Docuflash Mobile
 
-Share files privately, from your phone. Docuflash Mobile is the [Expo](https://expo.dev) React Native client for **Docuflash** — a service for creating **encrypted, self-expiring share links** for documents. Upload a file, choose who can open it and for how long, and hand out a link that vanishes on your schedule.
+**Private, time-limited file sharing from your phone.**
 
-<!-- Optional: add badges, e.g. Play Store link, license, Expo SDK version -->
+Docuflash Mobile is the Expo and React Native client for [Docuflash](https://docuflash-frontend.vercel.app). Create public or password-protected links for documents and folders, set an expiry, and share them when you need to. You can also create upload-request links so other people can send files to you without creating an account.
 
-## 🎥 Demo
+## App preview
 
-[![Docuflash Mobile Demo](https://img.youtube.com/vi/Ga8PkVGl4zY/maxresdefault.jpg)](https://www.youtube.com/watch?v=Ga8PkVGl4zY)
+<p align="center">
+  <img src="assets/play-store/phone/01-create-share-link.png" width="180" alt="Create a public or password-protected share link with automatic expiry controls." />
+  <img src="assets/play-store/phone/02-my-uploads.png" width="180" alt="Manage shared folders and uploaded files." />
+  <img src="assets/play-store/phone/03-upload-to-me.png" width="180" alt="Create a link that lets anyone upload files to you." />
+</p>
 
-Watch the demo above to see Docuflash Mobile in action.
-
-## Screenshots
-
-|                               Upload & share                               |                                   My uploads                                   |                                       Request files (QR)                                       |
-| :------------------------------------------------------------------------: | :----------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------: |
-| <img src="docs/screenshots/upload.jpeg" width="240" alt="Upload screen" /> | <img src="docs/screenshots/uploads.jpg" width="240" alt="My uploads screen" /> | <img src="docs/screenshots/request.jpg" width="240" alt="Request files screen with QR code" /> |
-
-|                                  Shared link viewer                                  |                                   Auth                                   |                                       Profile & theming                                      |
-| :----------------------------------------------------------------------------------: | :----------------------------------------------------------------------: | :------------------------------------------------------------------------------------------: |
-| <img src="docs/screenshots/share-viewer.jpg" width="240" alt="Shared file viewer" /> | <img src="docs/screenshots/auth.jpg" width="240" alt="Sign in screen" /> | <img src="docs/screenshots/profile.jpg" width="240" alt="Profile and appearance settings" /> |
+<p align="center">
+  <img src="assets/play-store/phone/04-file-received.png" width="180" alt="Open, preview, download, or share a received file." />
+  <img src="assets/play-store/phone/05-nearby.png" width="180" alt="Discover nearby Docuflash users on the same Wi-Fi network." />
+  <img src="assets/play-store/phone/06-profile-settings.png" width="180" alt="Configure account defaults, appearance, and account controls." />
+</p>
 
 ## Features
 
-* **Upload & share** — pick up to 5 files (PDF, DOCX, XLSX, ZIP, TXT; 16 MB each), optionally group them into a named folder, and generate a share link.
-* **Request files** — generate a link (with QR code) that lets *anyone* send files to you, with public or password-protected access.
-* **Password protection** — mark any share or request as `Protected` (requires a password to open) or `Public`.
-* **Auto-expiry** — links self-delete on schedule, with date/time pickers for custom expiry.
-* **My uploads** — browse, search, copy, open, and delete your files and folders, with download counts and expiry badges.
-* **Share & folder viewers** — open a `share/…` or `folder/…` link to unlock (if protected), preview, and download.
-* **Deep links** — verified Android App Links / iOS Universal Links: `docuflash-frontend.vercel.app/share|folder|request/…` URLs open directly in the app.
-* **Authentication** — email/password sign-up & login plus native Google Sign-In, with sessions stored in secure storage.
-* **OTA updates** — JS updates ship instantly to installed apps via EAS Update channels (development / preview / production).
-* **Theming** — light / dark / system appearance, custom fonts (DM Sans + Source Serif 4), and a token-based design system.
+- **Share files and folders** - upload up to five PDF, DOCX, XLSX, ZIP, or TXT files at once and create a link for a single file or a folder.
+- **Expiry and download controls** - choose an automatic expiry, use a custom date and time, or delete a file after its first download.
+- **Protected links** - require a password before a file, folder, or upload-request link can be opened.
+- **Upload to me** - create a link that anyone can use to send you files; no sender account is required.
+- **My uploads** - search, open, copy, and remove active file and folder links, with download counts and expiry information.
+- **Nearby transfers** - discover Docuflash users on the same Wi-Fi network and request a transfer.
+- **Background upload progress** - Android shows a persistent progress notification while a user-initiated upload continues after the app is backgrounded.
+- **Safe sharing controls** - shared content can be reported, and request owners can block unwanted upload senders.
+- **Personal notes** - keep quick notes that are visible only to the signed-in user.
+- **Authentication** - email/password authentication and native Google Sign-In, with sessions stored in secure storage.
+- **Deep links** - Docuflash `share`, `folder`, and `request` links open directly in the installed app.
 
 ## Architecture
 
-Docuflash is a three-part system; this repo is the mobile client.
-
 ```mermaid
 graph LR
-    A["Docuflash Mobile<br/>(Expo / React Native)"] -->|REST| B["Docuflash API<br/>(backend)"]
-    C["Docuflash Web<br/>(frontend, Vercel)"] -->|REST| B
-    A -->|uploads| D["UploadThing<br/>(file storage)"]
-    B --- D
-    C -.->|"App Links redirect<br/>share / folder / request"| A
+    Mobile["Docuflash Mobile\nExpo / React Native"] -->|REST API| API["Docuflash API"]
+    Mobile -->|File uploads| UploadThing["UploadThing"]
+    Web["Docuflash Web"] -->|REST API| API
+    Web -. "App Links: share, folder, request" .-> Mobile
 ```
 
-| Part                                                       | Role                                                                                    |
-| ---------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| **docuflash-mobile** (this repo)                           | Native iOS/Android client — uploads, share management, file requests, deep-link viewers |
-| [**Docuflash API**](https://docuflash-api.vercel.app)      | REST backend — auth, share tokens, expiry, access control                               |
-| [**Docuflash Web**](https://docuflash-frontend.vercel.app) | Web frontend — share links resolve here and hand off to the app when installed          |
+| Part | Responsibility |
+| --- | --- |
+| **docuflash-mobile** (this repository) | Native Android and iOS app, authentication, uploads, link management, deep-link viewers, and local UI. |
+| [Docuflash API](https://docuflash-api.vercel.app) | Authentication, file and folder metadata, expiry, access control, notes, and moderation APIs. |
+| [Docuflash Web](https://docuflash-frontend.vercel.app) | Signed-out web flows and the browser fallback for sharing links. |
+| UploadThing | File storage and upload transport. |
 
 ## Tech stack
 
-* **Expo SDK 56** + **React Native 0.85** + **React 19** (React Compiler enabled)
-* **Expo Router** for file-based, typed navigation
-* **TypeScript**
-* **react-hook-form** + **Zod** for forms and validation
-* **UploadThing** (`@uploadthing/expo`) for file uploads
-* **expo-secure-store** for session persistence
-* **@react-native-google-signin/google-signin** for native Google auth
-* **react-native-qrcode-svg** for shareable QR codes
-* **EAS Build + EAS Update** for builds and over-the-air JS updates
-
-> ⚠️ Expo SDK 56 introduced breaking changes. Read the versioned docs at https://docs.expo.dev/versions/v56.0.0/ before contributing.
+- Expo SDK 57, React Native 0.86, and React 19
+- Expo Router with typed routes
+- TypeScript, React Hook Form, and Zod
+- Jotai for lightweight client state
+- Supabase Realtime for upload-request and nearby-presence events
+- UploadThing for upload transport and storage
+- `expo-secure-store` for persisted sessions
+- Native Google Sign-In and `react-native-notify-kit` for Android upload notifications
+- EAS Build and EAS Update for release builds and compatible over-the-air updates
 
 ## Project structure
 
 ```text
 src/
-├── app/                         # Expo Router routes (file-based)
-│   ├── _layout.tsx              # Root stack, providers, auth redirect, font loading
-│   ├── index.tsx                # Entry redirect
-│   ├── auth.tsx                 # Sign in / sign up
-│   ├── success.tsx              # Post-upload share-link confirmation (modal)
-│   ├── share/[shareToken].tsx   # Public shared-file viewer (unlock / preview / download)
+├── app/                         # Expo Router routes
+│   ├── auth.tsx                 # Sign in and registration
+│   ├── share/[shareToken].tsx   # Shared-file viewer
 │   ├── folder/[shareToken].tsx  # Shared-folder viewer
-│   ├── request/new.tsx          # Create a file request (link + QR, public/protected)
-│   ├── request/[shareToken].tsx # Fulfil a file request (upload to someone's folder)
-│   └── (tabs)/                  # Authenticated tab navigator
-│       ├── index.tsx            # Upload screen
-│       ├── uploads.tsx          # My uploads (files & folders)
-│       └── profile.tsx          # Account, storage, settings, appearance
-├── components/                  # Icon + reusable UI primitives (Button, Card, Field, …)
-├── constants/                   # API base URL, auth, upload limits & MIME types
-├── hooks/                       # useUploadSubmit, useColorScheme
-├── lib/                         # API client, auth/files/folder endpoints, upload, session, validation
-├── state/                       # AuthProvider (auth context)
-├── theme/                       # ThemeProvider + design tokens
-└── types/                       # Shared TypeScript types (auth, file, folder)
+│   ├── request/                 # Create and fulfil upload requests
+│   └── (tabs)/                  # Uploads, nearby, notes, and profile tabs
+├── components/                  # Reusable UI and feature components
+├── hooks/                       # Upload, realtime, and device hooks
+├── lib/                         # API clients, auth, uploads, notifications, and utilities
+├── state/                       # Jotai atoms and providers
+├── theme/                       # Fonts, colour tokens, and appearance provider
+└── types/                       # Shared TypeScript models
+assets/play-store/phone/         # Play Store-ready phone screenshots
 ```
 
 ## Getting started
 
 ### Prerequisites
 
-* Node.js (see `eas.json` — builds use 22.13.0)
-* A running Docuflash backend, or use the deployed default API
+- Node.js **22.13.0** (the version used by EAS builds)
+- Android Studio for local Android builds, or Xcode for local iOS builds
+- A running Docuflash backend, or the deployed API
 
-### 1. Install dependencies
+### Install and configure
 
-```bash
-npm install
+```powershell
+nvm use 22.13.0
+npm ci
+Copy-Item .env.example .env
 ```
 
-### 2. Configure environment
+Set the following values in `.env`:
 
-Copy `.env.example` to `.env` and fill in the values:
+| Variable | Purpose |
+| --- | --- |
+| `EXPO_PUBLIC_BASE_URL` | Docuflash API and UploadThing host. Use your computer's LAN IP rather than `localhost` when testing on a physical device. |
+| `EXPO_PUBLIC_SHARE_BASE_URL` | Web host used to resolve share links. |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase project URL for realtime request and nearby events. |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key. |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google OAuth web-client ID required to obtain a native Google ID token. |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google OAuth iOS-client ID, when building for iOS. |
 
-```bash
-cp .env.example .env
-```
-
-| Variable                           | Description                                                                                                                                            |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `EXPO_PUBLIC_BASE_URL`             | Backend REST + UploadThing host. Defaults to the deployed API. For a local backend on a device/simulator, use your machine's LAN IP (not `localhost`). |
-| `EXPO_PUBLIC_SHARE_BASE_URL`       | Where share links resolve (the web frontend host). Optional.                                                                                           |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google "Web client" OAuth ID (needed for an idToken). Requires a custom dev build.                                                                     |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Google "iOS client" OAuth ID (iOS only). The reversed form also goes in `app.json`'s `iosUrlScheme`.                                                   |
-
-### 3. Start the app
+### Run locally
 
 ```bash
-npm start          # expo start
-npm run android    # build & run on Android
-npm run ios        # build & run on iOS
-npm run web        # run in the browser
+npm start
+npm run android
+npm run ios
+npm run web
 ```
 
-> Native Google Sign-In requires a [custom development build](https://docs.expo.dev/develop/development-builds/introduction/) — it does not work in Expo Go.
+> Native Google Sign-In and background upload notifications require a custom development build. They do not work in Expo Go.
 
 ## Scripts
 
-| Script                               | Description                                     |
-| ------------------------------------ | ----------------------------------------------- |
-| `npm start`                          | Start the Expo dev server                       |
-| `npm run android` / `ios` / `web`    | Run on a target platform                        |
-| `npm run lint`                       | Lint with `expo lint`                           |
-| `npm run build:development:*`        | EAS development build (Android / iOS)           |
-| `npm run build:preview`              | EAS preview build (all platforms)               |
-| `npm run build`                      | EAS production build (all platforms)            |
-| `npm run update:production -- "msg"` | Ship an OTA JS update to the production channel |
+| Command | Description |
+| --- | --- |
+| `npm run lint` | Run Expo linting. |
+| `npm run android` / `npm run ios` / `npm run web` | Build and run a local target. |
+| `npm run prebuild:clean:android` | Regenerate the Android project from Expo config. |
+| `npm run build:development:android` | Create an internal Android development build. |
+| `npm run build:preview:android` | Create an internal Android preview APK. |
+| `npm run build:android` | Create a production Android App Bundle for Google Play. |
+| `npm run update:preview -- "message"` | Publish a compatible JS update to the preview channel. |
+| `npm run update:production -- "message"` | Publish a compatible JS update to the production channel. |
 
-## Building & releasing
+## Releases and OTA updates
 
-Builds are configured in `eas.json` with `development`, `preview`, and `production` profiles. Development and preview build internal-distribution APKs; production builds an AAB with auto-incremented versions and ships through EAS Submit / the Play Console. JS-only changes go out over the air with EAS Update on the matching channel. See the [EAS Build docs](https://docs.expo.dev/build/introduction/).
+EAS profiles are defined in `eas.json`:
+
+- **development** - internal development build.
+- **preview** - internal-distribution APK on the `preview` update channel.
+- **production** - Play Store-ready AAB on the `production` update channel.
+
+This project uses Expo's `fingerprint` runtime policy. Publish an OTA update only when the change is JavaScript or asset-only and compatible with the installed native runtime. Any native dependency, Expo config, Android permission, or plugin change requires a new native build and Play Console upload.
+
+Before making an EAS build locally, use Node 22.13.0 and run `npm ci`. The included `.fingerprintignore` excludes disposable native build outputs inside `node_modules`, helping local fingerprints match EAS's clean install.
+
+## Contributing
+
+Run `npm run lint` before opening a change. For changes that affect native configuration or dependencies, also create and test a fresh development or preview build.
 
 ## License
 
