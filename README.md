@@ -118,6 +118,18 @@ npm run web
 
 > Native Google Sign-In and background upload notifications require a custom development build. They do not work in Expo Go.
 
+### Google Sign-In setup
+
+The app uses `@react-native-google-signin/google-signin` to get a Google ID token and sends it to `POST /api/auth/oauth/google/native`. The backend then exchanges it with Supabase `signInWithIdToken`. All of the following must be in the same Google Cloud project:
+
+1. **Web client**: an OAuth client of type *Web application*. Its ID is `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, both in `.env` and in each EAS environment.
+2. **Android client**: an OAuth client of type *Android* with package `com.novodip.docuflashmobile`. Add one for every signing certificate SHA-1, or sign-in fails with `DEVELOPER_ERROR`:
+   - the local debug keystore (`keytool -list -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android`)
+   - the EAS build credentials (`eas credentials -p android`)
+   - the Play App Signing key (Play Console → Test and release → App integrity)
+3. **iOS client**: an OAuth client of type *iOS* with bundle ID `com.novodip.docuflashmobile`. Set its ID as `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`. Put its reversed form (`com.googleusercontent.apps.<id>`) in the `iosUrlScheme` of the google-signin plugin in `app.json`, then rebuild.
+4. **Supabase**: in Authentication → Providers → Google, list the web and iOS client IDs under *Client IDs*. Enable *Skip nonce check*, because the native iOS SDK adds a nonce that the app can't read.
+
 ## Scripts
 
 | Command | Description |

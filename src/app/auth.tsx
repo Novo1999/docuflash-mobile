@@ -87,13 +87,7 @@ export default function AuthScreen() {
       await loginWithGoogle()
     } catch (e) {
       console.warn('[google-signin] failed:', e)
-      const detail =
-        e instanceof ApiError
-          ? e.message
-          : e instanceof Error
-            ? `${(e as { code?: string }).code ? `[${(e as { code?: string }).code}] ` : ''}${e.message}`
-            : 'Google sign-in failed. Please try again.'
-      setError(detail)
+      setError(e instanceof Error ? e.message : 'Google sign-in failed. Please try again.')
     } finally {
       setGoogleLoading(false)
     }

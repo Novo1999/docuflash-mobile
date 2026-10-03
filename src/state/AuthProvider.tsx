@@ -9,7 +9,7 @@ import {
   resetPassword,
   updateProfile as updateProfileApi,
 } from '@/lib/api/auth'
-import { signInWithGoogle } from '@/lib/googleSignin'
+import { getGoogleIdToken, signOutFromGoogle } from '@/lib/googleSignin'
 import { signInWithOAuthProvider } from '@/lib/oauth'
 import { loadSession, persistSession } from '@/lib/session'
 import type { AuthStatus, AuthUser, LoginPayload, OAuthProvider, RegisterPayload, ResetPasswordPayload, UpdateProfilePayload } from '@/types/auth'
@@ -68,11 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const loginWithGoogle: AuthContextValue['loginWithGoogle'] = async () => {
-    const result = await signInWithGoogle()
-    if (result.type === 'cancelled' || !result.data?.idToken) {
-      return { cancelled: true }
-    }
-    const auth = await loginWithGoogleNative({ idToken: result.data.idToken })
+    const idToken = await getGoogleIdToken()
+    if (!idToken) return { cancelled: true }
+    const auth = await loginWithGoogleNative({ idToken })
     await persistSession(auth.session)
     setUser(auth.user)
     setStatus('authenticated')
@@ -118,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Even if the server call fails, clear the local session.
     }
     await persistSession(null)
+    await signOutFromGoogle()
     setUser(null)
     setStatus('unauthenticated')
   }
@@ -125,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const deleteAccount: AuthContextValue['deleteAccount'] = async () => {
     await deleteAccountApi()
     await persistSession(null)
+    await signOutFromGoogle({ revoke: true })
     setUser(null)
     setStatus('unauthenticated')
   }

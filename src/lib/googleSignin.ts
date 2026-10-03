@@ -1,4 +1,6 @@
-import { GoogleSignin } from '@react-native-google-signin/google-signin'
+import { GoogleSignin, isErrorWithCode, isSuccessResponse, statusCodes } from '@react-native-google-signin/google-signin'
+
+const ANDROID_DEVELOPER_ERROR = '10'
 
 /**
  * Native Google Sign-In configuration.
@@ -20,15 +22,42 @@ export function configureGoogleSignin() {
   })
 }
 
-/**
- * Triggers the native Google account picker and returns the signed-in user.
- * The resulting `data.idToken` is what you POST to your backend to establish a session.
- */
-export async function signInWithGoogle() {
-  await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
-  return GoogleSignin.signIn()
+export async function getGoogleIdToken(): Promise<string | null> {
+  try {
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true })
+    if (GoogleSignin.hasPreviousSignIn()) await GoogleSignin.signOut()
+    const response = await GoogleSignin.signIn()
+    if (!isSuccessResponse(response)) return null
+    if (!response.data.idToken) {
+      throw new Error('Google sign-in is not configured for this build of the app. [missing idToken]')
+    }
+    return response.data.idToken
+  } catch (e) {
+    if (isErrorWithCode(e) && e.code === statusCodes.SIGN_IN_CANCELLED) return null
+    throw toGoogleSigninError(e)
+  }
 }
 
-export async function signOutFromGoogle() {
-  await GoogleSignin.signOut()
+export async function signOutFromGoogle({ revoke = false }: { revoke?: boolean } = {}) {
+  try {
+    if (!GoogleSignin.hasPreviousSignIn()) return
+    if (revoke) await GoogleSignin.revokeAccess()
+    else await GoogleSignin.signOut()
+  } catch {}
+}
+
+function toGoogleSigninError(error: unknown): Error {
+  if (!isErrorWithCode(error)) {
+    return error instanceof Error ? error : new Error('Google sign-in failed. Please try again.')
+  }
+  switch (error.code) {
+    case statusCodes.IN_PROGRESS:
+      return new Error('Google sign-in is already in progress.')
+    case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+      return new Error('Google Play Services is missing or out of date on this device.')
+    case ANDROID_DEVELOPER_ERROR:
+      return new Error('Google sign-in is not configured for this build of the app. [DEVELOPER_ERROR]')
+    default:
+      return new Error(`Google sign-in failed. Please try again. [${error.code}]`)
+  }
 }
